@@ -1,7 +1,7 @@
 # Notes about the data
 
 ## Non validating XML
-* CM: The original data does not wrap the items, I injected:
+* CM: The original data did not validate, I injected the following:
     * <data> after the first line
     * </data> after the last line
 

@@ -77,14 +77,14 @@ for record in root.iter('record'):
 # MES 4
 	r = record.xpath("name[@type='corporate']/namePart")
 	if(len(r)):
-		MES_4_Author = []
+		MES_4_author = []
 		for namePart in r:
-			MES_4_Author.append(namePart.text.strip())
+			MES_4_author.append(namePart.text.strip())
 	r = record.xpath("name[@type='personal']/namePart")
 	if(len(r)):
-		MES_4_Author[0] == '(M/a) CONFIRM MES element 4'
+		MES_4_author[0] == '(M/a) CONFIRM MES element 4'
 		for namePart in r:
-			MES_4_Author.append(namePart.text.strip())
+			MES_4_author.append(namePart.text.strip())
 
 # MES 5
 	r = record.xpath("note[@type='Physical Description']")
@@ -286,7 +286,7 @@ for record in root.iter('record'):
 	print "ID:: "+MES_1_metadata_identifier
 	print "TITLE:: "+("\nTITLE:: ".join(MES_2_title))
 	print "GCDEP:: "+("\nGCDEP:: ".join(MES_3_GC_Department_or_Agency))
-	print "AUTHOR:: "+("\nAUTHOR:: ".join(MES_4_Author))
+	print "AUTHOR:: "+("\nAUTHOR:: ".join(MES_4_author))
 	print "DESC:: "+MES_5_description
 	print "SUBJECT:: "+("\nSUBJECT:: ".join(MES_6_subject))
 	print "D CREATED:: "+MES_11_data_resource_created
