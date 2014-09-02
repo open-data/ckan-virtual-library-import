@@ -1,0 +1,16 @@
+# PWGSC
+
+## MES 1
+1. CKAN Provided, see MES-21 as the vetted source for 
+
+## MES 6
+1. Errors, missing values
+
+## MES 14
+1. Can we use either the french or english, they seem identical
+
+## MES 21
+1. Can we use either the french or english, they seem identical
+
+## MES 29
+1. NO SAFE WAY TO ADAPT TO NON OFFICIAL LANGUAGES
