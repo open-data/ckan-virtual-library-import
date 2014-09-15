@@ -58,7 +58,7 @@ for record in root.iter('record'):
 	MES_28_file_type               = '(M/a) CONFIRM MES element 28'
 	MES_29_language                = ['(M) ERROR MES element 29']
 	MES_30_language_other          = ['(M/a) CONFIRM MES element 30']
-	MES_31_type                    = ['(M) ERROR MES element 31']
+	MES_31_type                    = ['(M/a) CONFIRM MES element 31']
 	MES_32_format                  = ['(M-C) ERROR MES element 32']
 	MES_33_size                    = ['(O) BLANK MES element 33']
 	MES_34_number_of_pages         = ['(M/a) CONFIRM MES element 34']
@@ -66,6 +66,7 @@ for record in root.iter('record'):
 	MES_36_licence                 = '(M-C) ERROR MES element 36'
 
 # MES 1
+	# VERIFY THAT YOU ARE DOING WHAT THEY ASKED YOU TO
 	r = record.xpath("identifier[@type='canadiana']")
 	if(len(r)):
 		MES_1_metadata_identifier = r[0].text.strip()
