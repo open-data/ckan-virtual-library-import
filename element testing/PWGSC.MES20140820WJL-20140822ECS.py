@@ -201,7 +201,6 @@ for record in root.xpath("/rdf:RDF/rdf:Description", namespaces={'rdf': 'http://
 ## MES 20
 	# Not required "LAC"
 
-
 ## MES 21
 
 	r = record.xpath("dc:identifier[@xml:lang='en']", namespaces=record.nsmap)
