@@ -7,7 +7,7 @@ from lxml import etree
 import re
 import time
 
-f = codecs.open("../data/AMICUS_sample_128.xml", "r", "utf-8")
+f = codecs.open("../data/LAC_records_complete.xml", "r", "utf-8")
 
 #file = open(fname)
 #filecontents = file.read()
@@ -294,42 +294,43 @@ for record in root.iter('record'):
 	#if MES_6_subject[0] != 'ERROR MES element 6':
 	#	continue
 
-	print "ID                    ::"+MES_1_metadata_identifier
-	print "TITLE                 ::"+("\nTITLE                 ::".join(MES_2_title))
-	print "GCDEP                 ::"+("\nGCDEP                 ::".join(MES_3_GC_Department_or_Agency))
-	print "AUTHOR                ::"+("\nAUTHOR                ::".join(MES_4_author))
-	print "DESC                  ::"+MES_5_description
-	print "SUBJECT               ::"+("\nSUBJECT               ::".join(MES_6_subject))
-	print "KEYWORDS              ::"+("\nKEYWORDS              ::".join(MES_7_keywords))
-	print "D PUBLISHED           ::"+MES_8_date_resource_published
-	print "D CONTRIB             ::"+MES_9_date_contributed
-	print "D MODIFIED            ::"+MES_10_modification_Date
-	print "D CREATED             ::"+MES_11_data_resource_created
-	print "ISBN                  ::"+("\ISBN                   ::".join(MES_12_ISBN))
-	print "ISSN                  ::"+("\ISSN                   ::".join(MES_13_ISSN))
-	print "GC CATALOGUE NO       ::"+MES_14_gc_catalogue_number
-	print "DEPT. CATALOGUE NO    ::"+MES_15_dept_catalogue_number
-	print "WEEK CHECKLIST NO     ::"+MES_16_weekly_checklist_number
-	print "FILE CODE             ::"+MES_17_file_code
-	print "GC DOCS NO            ::"+MES_18_gc_docs_number
-	print "LAC_IDENT             ::"+MES_19_LAC_identifier
-	print "AMICUS NO             ::"+MES_20_amicus_identifier
-	print "CATALOGUE SYSTEM NO   ::"+MES_21_PWGSC_identifier
-	print "DOI                   ::"+("\nDOI                   ::".join(MES_22_DOI))
-	print "Series Title          ::"+("\nSeries Title          ::".join(MES_23_series_title))
-	print "Series Number         ::"+("\nSeries Number         ::".join(MES_24_series_number))
-	print "FREQUENCY             ::"+MES_25_frequency_of_serial
-	print "FORMER FREQUENCY      ::"+("\nFORMER FREQUENCY      ::".join(MES_26_former_frequency))
-	print "NUM & CHRONO          ::"+("\nNUM & CHRONO          ::".join(MES_27_num_and_chrono_des))
-	print "FILETYPE              ::"+MES_28_file_type
-	print "LANGUAGE              ::"+("\nLANGUAGE              ::".join(MES_29_language))
-	print "OTHER LANGUAGE        ::"+("\nOTHER LANGUAGE        ::".join(MES_30_language_other))
-	print "TYPE                  ::"+("\nTYPE                  ::".join(MES_31_type))
-	print "FORMAT                ::"+("\nFORMAT                ::".join(MES_32_format))
-	print "SIZE                  ::"+("\SIZE                   ::".join(MES_33_size))
-	print "PAGES                 ::"+("\nPAGES                 ::".join(MES_34_number_of_pages))
-	print "ACCESS URL            ::"+("\nACCESS URL            ::".join(MES_35_access_url))
-	print "LICENSE               ::"+MES_36_licence
+
+	print "ID                    ::"+MES_1_metadata_identifier.encode('utf-8')
+	print "TITLE                 ::"+("\nTITLE                 ::".join(set(MES_2_title))).encode('utf-8')
+	print "GCDEP                 ::"+("\nGCDEP                 ::".join(set(MES_3_GC_Department_or_Agency))).encode('utf-8')
+	print "AUTHOR                ::"+("\nAUTHOR                ::".join(set(MES_4_author))).encode('utf-8')
+	print "DESC                  ::"+MES_5_description.encode('utf-8')
+	print "SUBJECT               ::"+("\nSUBJECT               ::".join(set(MES_6_subject))).encode('utf-8')
+	print "KEYWORDS              ::"+("\nKEYWORDS              ::".join(set(MES_7_keywords))).encode('utf-8')
+	print "D PUBLISHED           ::"+MES_8_date_resource_published.encode('utf-8')
+	print "D CONTRIB             ::"+MES_9_date_contributed.encode('utf-8')
+	print "D MODIFIED            ::"+MES_10_modification_Date.encode('utf-8')
+	print "D CREATED             ::"+MES_11_data_resource_created.encode('utf-8')
+	print "ISBN                  ::"+("\ISBN                   ::".join(set(MES_12_ISBN))).encode('utf-8')
+	print "ISSN                  ::"+("\ISSN                   ::".join(set(MES_13_ISSN))).encode('utf-8')
+	print "GC CATALOGUE NO       ::"+MES_14_gc_catalogue_number.encode('utf-8')
+	print "DEPT. CATALOGUE NO    ::"+MES_15_dept_catalogue_number.encode('utf-8')
+	print "WEEK CHECKLIST NO     ::"+MES_16_weekly_checklist_number.encode('utf-8')
+	print "FILE CODE             ::"+MES_17_file_code.encode('utf-8')
+	print "GC DOCS NO            ::"+MES_18_gc_docs_number.encode('utf-8')
+	print "LAC_IDENT             ::"+MES_19_LAC_identifier.encode('utf-8')
+	print "AMICUS NO             ::"+MES_20_amicus_identifier.encode('utf-8')
+	print "CATALOGUE SYSTEM NO   ::"+MES_21_PWGSC_identifier.encode('utf-8')
+	print "DOI                   ::"+("\nDOI                   ::".join(set(MES_22_DOI))).encode('utf-8')
+	print "Series Title          ::"+("\nSeries Title          ::".join(set(MES_23_series_title))).encode('utf-8')
+	print "Series Number         ::"+("\nSeries Number         ::".join(set(MES_24_series_number))).encode('utf-8')
+	print "FREQUENCY             ::"+MES_25_frequency_of_serial.encode('utf-8')
+	print "FORMER FREQUENCY      ::"+("\nFORMER FREQUENCY      ::".join(set(MES_26_former_frequency))).encode('utf-8')
+	print "NUM & CHRONO          ::"+("\nNUM & CHRONO          ::".join(set(MES_27_num_and_chrono_des))).encode('utf-8')
+	print "FILETYPE              ::"+MES_28_file_type.encode('utf-8')
+	print "LANGUAGE              ::"+("\nLANGUAGE              ::".join(set(MES_29_language))).encode('utf-8')
+	print "OTHER LANGUAGE        ::"+("\nOTHER LANGUAGE        ::".join(set(MES_30_language_other))).encode('utf-8')
+	print "TYPE                  ::"+("\nTYPE                  ::".join(set(MES_31_type))).encode('utf-8')
+	print "FORMAT                ::"+("\nFORMAT                ::".join(set(MES_32_format))).encode('utf-8')
+	print "SIZE                  ::"+("\SIZE                   ::".join(set(MES_33_size))).encode('utf-8')
+	print "PAGES                 ::"+("\nPAGES                 ::".join(set(MES_34_number_of_pages))).encode('utf-8')
+	print "ACCESS URL            ::"+("\nACCESS URL            ::".join(set(MES_35_access_url))).encode('utf-8')
+	print "LICENSE               ::"+MES_36_licence.encode('utf-8')
 
 	print "======================================================================"
 
