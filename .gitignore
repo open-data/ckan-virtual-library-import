@@ -57,6 +57,6 @@ docs/_build/
 
 
 data/description_types.txt
-element testing/DUMP*.txt
+element testing/DUMP_*
 data/LAC_records_complete.xml
 data/*.jl
