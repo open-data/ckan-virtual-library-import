@@ -6,39 +6,52 @@ import codecs
 from lxml import etree
 import re
 import time
+import json
 
+# Sanity checking and short cycle testing
+# 0 = unlimited, any other number is a maximum tollerance
+fuse = 0
+
+# Split tasks, same blocks of logic per MES
+output_human = False
+output_json  = True
+if len(sys.argv):
+	if 'report' in sys.argv:
+		output_human = True
+		output_json  = False
+	if 'debug' in sys.argv:
+		output_human = False
+		output_json  = False
+
+# Report Header
 iso_time = time.strftime("%Y-%m-%dT%H:%M:%S", time.gmtime())
-print "======================================================================"
-print "= PWGSC :: "+iso_time+" ======================================="
-print "======================================================================"
-print "==== (M)   Mandatory ================================================="
-print "==== (M/a) Mandatory if Applicable ==================================="
-print "==== (O)   Optional==================================================="
-print "==== (M-C) Mandatory, CKAN generated ================================="
-print "======================================================================"
+if output_human:
+	print "======================================================================"
+	print "= PWGSC :: "+iso_time+" ======================================="
+	print "======================================================================"
+	print "==== (M)   Mandatory ================================================="
+	print "==== (M/a) Mandatory if Applicable ==================================="
+	print "==== (O)   Optional==================================================="
+	print "==== (M-C) Mandatory, CKAN generated ================================="
+	print "======================================================================"
 
 json_output = []
-
 input_files = ['monographs-monographies.xml', 'periodicals-periodiques.xml', 'series-series.xml']
 #input_files = ['series-series.xml']
 
 for input_file in input_files:
 
-	print "======================================================================"
-	print "===== "+input_file
-	print "======================================================================"
+	# Report import file marker
+	if output_human:
+		print "======================================================================"
+		print "===== "+input_file
+		print "======================================================================"
 
 	f = codecs.open("../data/"+input_file, "r", "utf-8")
-	#f = codecs.open("../data/periodicals-periodiques.xml", "r", "utf-8")
-	#f = codecs.open("../data/series-series.xml", "r", "utf-8")
 
 	root = etree.fromstring(f.read())
 
-	#fuse = 1
 	for record in root.xpath("/rdf:RDF/rdf:Description", namespaces={'rdf': 'http://www.w3.org/1999/02/22-rdf-syntax-ns#'}):
-		#if fuse < 1:
-		#	break
-		#fuse -= 1
 
 		MES_1_metadata_identifier 	   = '(M-C) ERROR MES element 1'
 		MES_2_title 				   = ['(M) ERROR MES element 2']
@@ -97,6 +110,23 @@ for input_file in input_files:
 #
 #		continue
 
+		json_record = {}
+		json_record['resources'] = [{}]
+		json_record['type'] ='doc'
+		json_record['license_id'] = 'ca-ogl-lgo'
+
+
+## MES 29
+
+		r = record.xpath("dc:language[@xml:lang='en']", namespaces=record.nsmap)
+		#r = record.xpath("name[@type='corporate']/namePart")
+		if(len(r)):
+			MES_29_language = []
+			for namePart in r:
+				#print "LANGO:["+MES_1_metadata_identifier+"]:"+namePart.text.strip()
+				MES_29_language.append(iso_conversion[namePart.text.strip()])
+		json_record['resources'][0]['languages'] = ','.join(MES_29_language)
+
 ## MES 1
 		#r = record.xpath("dc:identifier[@xml:lang='en']", namespaces=record.nsmap)
 		r = record.xpath("dc:identifier", namespaces=record.nsmap)
@@ -109,77 +139,175 @@ for input_file in input_files:
 					m = re.search("{ID système}\s+(.*)", cn.text.strip())
 					if m:
 						MES_1_metadata_identifier = m.group(1).strip() 
+		json_record['name'] = 'publications-'+MES_1_metadata_identifier 
 
 ## MES 2
 		bits = []
+		bits_en = []
+		bits_fr = []
+		json_record['title_ml'] = {}
 		r = record.xpath("dc:title[@xml:lang='en']", namespaces=record.nsmap)
 		if(len(r)):
 			for title in r:
-				bits.append('[en]::'+title.text.strip())
+				bits.append(title.text.strip())
+				bits_en.append(title.text.strip())
 		r = record.xpath("dc:title[@xml:lang='fr']", namespaces=record.nsmap)
 		if(len(r)):
 			for title in r:
-				bits.append('[fr]::'+title.text.strip())
+				bits.append(title.text.strip())
+				bits_fr.append(title.text.strip())
 		if(len(bits)):
 			MES_2_title = bits
+		if(len(bits_en)):
+			json_record['title_ml']['en'] = ','.join(bits_en)
+		if(len(bits_fr)):
+			json_record['title_ml']['fr'] = ','.join(bits_fr)
+		#if(len(json_record['title_ml']) < 1):
+		#	del json_record['title_ml']
+
+		joined_title = ''
+		if 'en' in json_record['title_ml']:
+			joined_title = joined_title+json_record['title_ml']['en']
+		if 'fr' in json_record['title_ml']:
+			joined_title = joined_title+json_record['title_ml']['fr']
+
+		if 'en' in json_record['title_ml'] and 'fr' in json_record['title_ml']:
+			json_record['title'] = json_record['title_ml']['en'] + ' | ' + json_record['title_ml']['fr']
+
+		elif 'en' in json_record['title_ml']:
+			json_record['title'] = json_record['title_ml']['en']
+		elif 'fr' in json_record['title_ml']:
+			json_record['title'] = json_record['title_ml']['fr']
+		else:
+			json_record['title'] = 'ERROR TITLE MISSING'
+
+		if json_record['title'] == '':
+			json_record['title'] = 'ERROR BLANK TITLE'
+
+#		else:		
+#			for lang in MES_29_language:
+#				if lang == 'eng':
+#					if 'en' not in json_record['title_ml']:
+#						json_record['title'] = json_record['title_ml']['fr']
+#				elif lang == 'fra' or lang == 'fre':
+#					if 'fr' not in json_record['title_ml']:
+#						json_record['title'] = json_record['title_ml']['en']
+#			#else:
+#			#	print "y : Not english or french [ "+lang+" ] : "+MES_1_metadata_identifier
 
 ## MES 3
 		bits = []
+		bits_en = []
+		bits_fr = []
+		json_record['source_organizations_ml'] = {}
 		r = record.xpath("dc:creator[@xml:lang='en']", namespaces=record.nsmap)
 		if(len(r)):
 			for namePart in r:
-				bits.append('[en]::'+namePart.text.strip())
+				bits.append(namePart.text.strip())
+				bits_en.append(namePart.text.strip())
+				#json_record['gc_org']['en'] = namePart.text.strip()
 		r = record.xpath("dc:creator[@xml:lang='fr']", namespaces=record.nsmap)
 		if(len(r)):
 			for namePart in r:
-				bits.append('[fr]::'+namePart.text.strip())
+				bits.append(namePart.text.strip())
+				bits_fr.append(namePart.text.strip())
+				#json_record['gc_org']['fr'] = namePart.text.strip()
 		if(len(bits)):
 			MES_3_GC_Department_or_Agency = bits
+		if(len(bits_en)):
+			json_record['source_organizations_ml']['en'] = ','.join(bits_en)
+		if(len(bits_fr)):
+			json_record['source_organizations_ml']['fr'] = ','.join(bits_fr)
+		if(len(json_record['source_organizations_ml']) < 1):
+			del json_record['source_organizations_ml']
 
 ## MES 4
 		# NA
 
 ## MES 5
 		bits = []
+		bits_en = []
+		bits_fr = []	
+		json_record['description_ml'] = {}
+		page = ''
 		r = record.xpath("dc:description[@xml:lang='en']", namespaces=record.nsmap)
 		if(len(r)):
 			for title in r:
 				#print "--title:"+title.text.strip()
-				m = re.search('^{.*', title.text.strip())
-				if not m:
-					bits.append('[en]::'+title.text.strip())
+				m = re.search('^[0-9]+p\.', title.text.strip())
+				if m:
+					page = page + title.text.strip()
+				else:
+					m = re.search('^{.*', title.text.strip())
+					if not m:
+						bits.append(title.text.strip())
+						bits_en.append(title.text.strip())
 		r = record.xpath("dc:description[@xml:lang='fr']", namespaces=record.nsmap)
 		if(len(r)):
 			for title in r:
 				#print "--title:"+title.text.strip()
-				m = re.search('^{.*', title.text.strip())
-				if not m:
-					bits.append('[fr]::'+title.text.strip())
+				m = re.search('^[0-9]+p\.', title.text.strip())
+				if m:
+					page = page + title.text.strip()
+				else:
+					m = re.search('^{.*', title.text.strip())
+					if not m:
+						bits.append(title.text.strip())
+						bits_fr.append(title.text.strip())
 		if(len(bits)):
 			MES_5_description = "\n".join(bits)
+			#json_record['description_ml'] = "\n".join(bits)
+		if(len(bits_en)):
+			json_record['description_ml']['en'] = ' '.join(bits_en)
+			if page != '':
+				json_record['description_ml']['en'] = json_record['description_ml']['en'] + ' ' + page
+		if(len(bits_fr)):
+			json_record['description_ml']['fr'] = ' '.join(bits_fr)
+			if page != '':
+				json_record['description_ml']['fr'] = json_record['description_ml']['fr'] + ' ' + page
+		#if(len(json_record['description_ml']) < 1):
+		#	del json_record['description_ml']
+
 
 ## MES 6
 		bits = []
+		bits_en = []
+		bits_fr = []
+		json_record['subject_ml'] = {}
 		r = record.xpath("dc:subject[@xml:lang='en']", namespaces=record.nsmap)
 		#r = record.xpath("name[@type='corporate']/namePart")
 		if(len(r)):
 			for namePart in r:
-				bits.append('[en]::'+namePart.text.strip())
+				bits.append(namePart.text.strip())
+				bits_en.append(namePart.text.strip())
 		r = record.xpath("dc:subject[@xml:lang='fr']", namespaces=record.nsmap)
 		#r = record.xpath("name[@type='corporate']/namePart")
 		if(len(r)):
 			for namePart in r:
-				bits.append('[fr]::'+namePart.text.strip())
+				bits.append(namePart.text.strip())
+				bits_fr.append(namePart.text.strip())
 		if(len(bits)):
 			MES_6_subject = bits
+		if(len(bits_en)):
+			json_record['subject_ml']['en'] = ','.join(bits_en)
+		if(len(bits_fr)):
+			json_record['subject_ml']['fr'] = ','.join(bits_en)
+		if(len(json_record['subject_ml']) < 1):
+			json_record['subject_ml'] = ['Government and Politics']
+			#del json_record['subject_ml']
+
+
 
 ## MES 7
 		# NA
 
 ## MES 8
+		
 		r = record.xpath("dc:date", namespaces=record.nsmap)
 		if(len(r)):
 			MES_8_date_resource_published = r[0].text.strip()
+			#json_record['resources'][0]['date_published'] = MES_8_date_resource_published
+			json_record['date_published'] = MES_8_date_resource_published
 
 ## MES 9
 		# CKAN Produced
@@ -201,6 +329,10 @@ for input_file in input_files:
 						MES_12_ISBN = []
 					MES_12_ISBN.append(isbn_bits[1].strip())
 
+		if(MES_12_ISBN[0] != '(M/a) CONFIRM MES element 12'):
+			json_record['isbn'] = ','.join(MES_12_ISBN)
+
+
 ## MES 13
 		r = record.xpath("dc:identifier", namespaces=record.nsmap)
 		#r = record.xpath("name[@type='corporate']/namePart")
@@ -212,6 +344,9 @@ for input_file in input_files:
 						MES_13_ISSN = []
 					MES_13_ISSN.append(issn_bits[1].strip())
 
+		if(MES_13_ISSN[0] != '(M/a) CONFIRM MES element 13'):
+			json_record['issn'] = ','.join(MES_13_ISSN)
+
 ## MES 14
 		#r = record.xpath("dc:identifier[@xml:lang='en']", namespaces=record.nsmap)
 		r = record.xpath("dc:identifier", namespaces=record.nsmap)
@@ -220,10 +355,12 @@ for input_file in input_files:
 				m = re.search('{Catalogue Numbe}\s+(.*)', cn.text.strip())
 				if m:
 					MES_14_gc_catalogue_number = m.group(1).strip() 
+					json_record['gc_catalogue_number'] = m.group(1).strip()
 				else:
 					m = re.search("{Numéro de catalogue}\s+(.*)", cn.text.strip())
 					if m:
-						MES_14_gc_catalogue_number = m.group(1).strip() 
+						MES_14_gc_catalogue_number = m.group(1).strip()
+						json_record['gc_catalogue_number'] = m.group(1).strip()
 
 ## MES 15
 		r = record.xpath("dc:identifier", namespaces=record.nsmap)
@@ -244,6 +381,9 @@ for input_file in input_files:
 							m = re.search("{ID ministérielle (fr)}\s+(.*)", cn.text.strip())
 							if m:
 								MES_15_dept_catalogue_number = m.group(1).strip() 
+
+			if MES_15_dept_catalogue_number != '(M/a) CONFIRM MES element 15':
+				json_record['dept_catalogue_number'] = MES_15_dept_catalogue_number
 
 ## MES 16
 		# NA
@@ -278,12 +418,17 @@ for input_file in input_files:
 					if m:
 						MES_21_PWGSC_identifier = m.group(1).strip() 
 
+			json_record['catalogue_number'] = MES_21_PWGSC_identifier
+
 ## MES 22
 		# DOI N/A
 
 ## MES 23
 
 		bits = []
+		bits_en = []
+		bits_fr = []
+		json_record['series_title_ml'] = {}
 		#r = record.xpath("dc:identifier[@xml:lang='en']", namespaces=record.nsmap)
 		r = record.xpath("dc:description", namespaces=record.nsmap)
 		if(len(r)):
@@ -291,15 +436,26 @@ for input_file in input_files:
 				m = re.search('{Series title}\s+(.*)', cn.text.strip())
 				if m:
 					bits.append(m.group(1).strip())
-				else:
-					m = re.search("{Titre de collection}\s+(.*)", cn.text.strip())
-					if m:
-						bits.append(m.group(1).strip())
+					bits_en.append(m.group(1).strip())
+				m = re.search("{Titre de collection}\s+(.*)", cn.text.strip())
+				if m:
+					bits.append(m.group(1).strip())
+					bits_fr.append(m.group(1).strip())
 		if(len(bits)):
 			MES_23_series_title = bits
+		if(len(bits_en)):
+			json_record['series_title_ml']['en'] = ','.join(bits_en)
+		if(len(bits_fr)):
+			json_record['series_title_ml']['fr'] = ','.join(bits_fr)
+		if(len(json_record['series_title_ml']) < 1):
+			del json_record['series_title_ml']
 
 ## MES 24
+
 		bits = []
+		bits_en = []
+		bits_fr = []
+		json_record['series_number_ml'] = {}
 		#r = record.xpath("dc:identifier[@xml:lang='en']", namespaces=record.nsmap)
 		r = record.xpath("dc:description", namespaces=record.nsmap)
 		if(len(r)):
@@ -307,12 +463,19 @@ for input_file in input_files:
 				m = re.search('{Issue}\s+(.*)', cn.text.strip())
 				if m:
 					bits.append(m.group(1).strip())
-				else:
-					m = re.search("{Numéro}\s+(.*)", cn.text.strip())
-					if m:
-						bits.append(m.group(1).strip())
+					bits_en.append(m.group(1).strip())
+				m = re.search("{Numéro}\s+(.*)", cn.text.strip())
+				if m:
+					bits.append(m.group(1).strip())
+					bits_fr.append(m.group(1).strip())
 		if(len(bits)):
 			MES_24_series_number = bits
+		if(len(bits_en)):
+			json_record['series_number_ml']['en'] = ','.join(bits_en)
+		if(len(bits_fr)):
+			json_record['series_number_ml']['fr'] = ','.join(bits_fr)
+		if(len(json_record['series_number_ml']) < 1):
+			del json_record['series_number_ml']
 
 ## MES 25
 		# NA
@@ -322,6 +485,9 @@ for input_file in input_files:
 
 ## MES 27
 		bits = []
+		bits_en = []
+		bits_fr = []
+		json_record['resources'][0]['numeric_designation_ml'] = {}
 		#r = record.xpath("dc:identifier[@xml:lang='en']", namespaces=record.nsmap)
 		r = record.xpath("dc:description", namespaces=record.nsmap)
 		if(len(r)):
@@ -329,28 +495,32 @@ for input_file in input_files:
 				m = re.search('{Issue}\s+(.*)', cn.text.strip())
 				if m:
 					bits.append(m.group(1).strip())
-				else:
-					m = re.search("{Numéro}\s+(.*)", cn.text.strip())
-					if m:
-						bits.append(m.group(1).strip())
+					bits_en.append(m.group(1).strip())
+				m = re.search("{Numéro}\s+(.*)", cn.text.strip())
+				if m:
+					bits.append(m.group(1).strip())
+					bits_fr.append(m.group(1).strip())
+
 		if(len(bits)):
-			MES_24_series_number = bits
+			MES_27_series_number = bits
+		if(len(bits_en)):
+			json_record['resources'][0]['numeric_designation_ml']['en'] = ','.join(bits_en)
+		if(len(bits_fr)):
+			json_record['resources'][0]['numeric_designation_ml']['fr'] = ','.join(bits_fr)
+		if(len(json_record['resources'][0]['numeric_designation_ml']) < 1):
+			del json_record['resources'][0]['numeric_designation_ml']
 
 ## MES 28
 
-		r = record.xpath("dc:format", namespaces=record.nsmap)
-		if(len(r)):
-			MES_28_file_type = r[0].text.strip()
+#		r = record.xpath("dc:format", namespaces=record.nsmap)
+#		if(len(r)):
+#			MES_28_file_type = r[0].text.strip()
+#			json_record['resources'][0]['format_description_ml'] = {}
+#			for lang in MES_29_language:
+#				json_record['resources'][0]['format_description_ml'][lang[:-1]] = MES_28_file_type
 
 ## MES 29
-
-		r = record.xpath("dc:language[@xml:lang='en']", namespaces=record.nsmap)
-		#r = record.xpath("name[@type='corporate']/namePart")
-		if(len(r)):
-			MES_29_language = []
-			for namePart in r:
-				print "LANGO:["+MES_1_metadata_identifier+"]:"+namePart.text.strip()
-				MES_29_language.append(iso_conversion[namePart.text.strip()])
+#   See above
 
 ## MES 30
 		bits = []
@@ -367,20 +537,64 @@ for input_file in input_files:
 						bits.append(m.group(1).strip())
 		if(len(bits)):
 			MES_30_language_other = bits
+			json_record['other_language_url'] = ','.join(MES_30_language_other)			
 
 ## MES 31
-	
-		r = record.xpath("dc:type[@xml:lang='en']", namespaces=record.nsmap)
-		if(len(r)):
-			MES_31_type = []
-			for cn in r:
-				MES_31_type.append(cn.text.strip())
-		r = record.xpath("dc:type[@xml:lang='fr']", namespaces=record.nsmap)
-		if(len(r)):
-			if(MES_31_type[0] == '(M) ERROR MES element 31'):
-				MES_31_type = []
-			for cn in r:
-				MES_31_type.append(cn.text.strip())
+
+		json_record['resources'][0]['nature_genre_ml'] = {}
+
+		if input_file == 'monographs-monographies.xml':
+			for lang in MES_29_language:
+				if lang == 'eng':
+					json_record['resources'][0]['nature_genre_ml']['en'] = 'monograph'
+				if lang == 'fra':
+					json_record['resources'][0]['nature_genre_ml']['fr'] = 'monographie'
+				if lang == 'fre':
+					json_record['resources'][0]['nature_genre_ml']['fr'] = 'monographie'
+		if input_file == 'periodicals-periodiques.xml':
+			for lang in MES_29_language:
+				if lang == 'eng':
+					json_record['resources'][0]['nature_genre_ml']['en'] = 'periodical'
+				if lang == 'fra':
+					json_record['resources'][0]['nature_genre_ml']['fr'] = 'periodique'
+				if lang == 'fre':
+					json_record['resources'][0]['nature_genre_ml']['fr'] = 'periodique'
+		if input_file == 'series-series.xml':
+			for lang in MES_29_language:
+				if lang == 'eng':
+					json_record['resources'][0]['nature_genre_ml']['en'] = 'series'
+				if lang == 'fra':
+					json_record['resources'][0]['nature_genre_ml']['fr'] = 'serie'
+				if lang == 'fre':
+					json_record['resources'][0]['nature_genre_ml']['fr'] = 'serie'
+
+		
+# CONFIRM with Alannah
+#
+#		bits_en = []
+#		bits_fr = []	
+#		json_record['resources'][0]['nature_genre_ml'] = {}
+#
+#		r = record.xpath("dc:type[@xml:lang='en']", namespaces=record.nsmap)
+#		if(len(r)):
+#			MES_31_type = []
+#			for cn in r:
+#				MES_31_type.append(cn.text.strip())
+#				bits_en.append(cn.text.strip())
+#		r = record.xpath("dc:type[@xml:lang='fr']", namespaces=record.nsmap)
+#		if(len(r)):
+#			if(MES_31_type[0] == '(M) ERROR MES element 31'):
+#				MES_31_type = []
+#			for cn in r:
+#				MES_31_type.append(cn.text.strip())
+#				bits_fr.append(cn.text.strip())
+#
+#		if(len(bits_en)):
+#			json_record['resources'][0]['nature_genre_ml']['en'] = ','.join(bits_en)
+#		if(len(bits_fr)):
+#			json_record['resources'][0]['nature_genre_ml']['fr'] = ','.join(bits_fr)
+#
+# ####################
 
 ## MES 32
 
@@ -415,6 +629,9 @@ for input_file in input_files:
 						MES_35_access_url = []
 					MES_35_access_url.append(url_bits[1].strip())
 
+		if(MES_35_access_url[0] != '(M) ERROR MES element 35'):
+			json_record['resources'][0]['url'] = ','.join(MES_35_access_url)
+
 	#
 	#	## Uncomment to display missing Canadiana numbers
 	#	#if(MES_1_metadata_identifier == 'ERROR MES element 1'):
@@ -428,95 +645,50 @@ for input_file in input_files:
 	#	#	continue
 	#
 
-		print "ID                    ::"+MES_1_metadata_identifier.encode('utf-8')
-		print "TITLE                 ::"+("\nTITLE                 ::".join(set(MES_2_title))).encode('utf-8')
-		print "GCDEP                 ::"+("\nGCDEP                 ::".join(set(MES_3_GC_Department_or_Agency))).encode('utf-8')
-		print "AUTHOR                ::"+("\nAUTHOR                ::".join(set(MES_4_author))).encode('utf-8')
-		print "DESC                  ::"+MES_5_description.encode('utf-8')
-		print "SUBJECT               ::"+("\nSUBJECT               ::".join(set(MES_6_subject))).encode('utf-8')
-		print "KEYWORDS              ::"+("\nKEYWORDS              ::".join(set(MES_7_keywords))).encode('utf-8')
-		print "D PUBLISHED           ::"+MES_8_date_resource_published.encode('utf-8')
-		print "D CONTRIB             ::"+MES_9_date_contributed.encode('utf-8')
-		print "D MODIFIED            ::"+MES_10_modification_Date.encode('utf-8')
-		print "D CREATED             ::"+MES_11_data_resource_created.encode('utf-8')
-		print "ISBN                  ::"+("\ISBN                   ::".join(set(MES_12_ISBN))).encode('utf-8')
-		print "ISSN                  ::"+("\ISSN                   ::".join(set(MES_13_ISSN))).encode('utf-8')
-		print "GC CATALOGUE NO       ::"+MES_14_gc_catalogue_number
-		print "DEPT. CATALOGUE NO    ::"+MES_15_dept_catalogue_number.encode('utf-8')
-		print "WEEK CHECKLIST NO     ::"+MES_16_weekly_checklist_number.encode('utf-8')
-		print "FILE CODE             ::"+MES_17_file_code.encode('utf-8')
-		print "GC DOCS NO            ::"+MES_18_gc_docs_number.encode('utf-8')
-		print "LAC_IDENT             ::"+MES_19_LAC_identifier.encode('utf-8')
-		print "AMICUS NO             ::"+MES_20_amicus_identifier.encode('utf-8')
-		print "CATALOGUE SYSTEM NO   ::"+MES_21_PWGSC_identifier.encode('utf-8')
-		print "DOI                   ::"+("\nDOI                   ::".join(set(MES_22_DOI))).encode('utf-8')
-		print "Series Title          ::"+("\nSeries Title          ::".join(set(MES_23_series_title))).encode('utf-8')
-		print "Series Number         ::"+("\nSeries Number         ::".join(set(MES_24_series_number))).encode('utf-8')
-		print "FREQUENCY             ::"+MES_25_frequency_of_serial.encode('utf-8')
-		print "FORMER FREQUENCY      ::"+("\nFORMER FREQUENCY      ::".join(set(MES_26_former_frequency))).encode('utf-8')
-		print "NUM & CHRONO          ::"+("\nNUM & CHRONO          ::".join(set(MES_27_num_and_chrono_des))).encode('utf-8')
-		print "FILETYPE              ::"+MES_28_file_type.encode('utf-8')
-		print "LANGUAGE              ::"+("\nLANGUAGE              ::".join(set(MES_29_language))).encode('utf-8')
-		print "OTHER LANGUAGE        ::"+("\nOTHER LANGUAGE        ::".join(set(MES_30_language_other))).encode('utf-8')
-		print "TYPE                  ::"+("\nTYPE                  ::".join(set(MES_31_type))).encode('utf-8')
-		print "FORMAT                ::"+("\nFORMAT                ::".join(set(MES_32_format))).encode('utf-8')
-		print "SIZE                  ::"+("\SIZE                   ::".join(set(MES_33_size))).encode('utf-8')
-		print "PAGES                 ::"+("\nPAGES                 ::".join(set(MES_34_number_of_pages))).encode('utf-8')
-		print "ACCESS URL            ::"+("\nACCESS URL            ::".join(set(MES_35_access_url))).encode('utf-8')
-		print "LICENSE               ::"+MES_36_licence.encode('utf-8')
+		if output_human:
+			print "ID                    ::"+MES_1_metadata_identifier.encode('utf-8')
+			print "TITLE                 ::"+("\nTITLE                 ::".join(set(MES_2_title))).encode('utf-8')
+			print "GCDEP                 ::"+("\nGCDEP                 ::".join(set(MES_3_GC_Department_or_Agency))).encode('utf-8')
+			print "AUTHOR                ::"+("\nAUTHOR                ::".join(set(MES_4_author))).encode('utf-8')
+			print "DESC                  ::"+MES_5_description.encode('utf-8')
+			print "SUBJECT               ::"+("\nSUBJECT               ::".join(set(MES_6_subject))).encode('utf-8')
+			print "KEYWORDS              ::"+("\nKEYWORDS              ::".join(set(MES_7_keywords))).encode('utf-8')
+			print "D PUBLISHED           ::"+MES_8_date_resource_published.encode('utf-8')
+			print "D CONTRIB             ::"+MES_9_date_contributed.encode('utf-8')
+			print "D MODIFIED            ::"+MES_10_modification_Date.encode('utf-8')
+			print "D CREATED             ::"+MES_11_data_resource_created.encode('utf-8')
+			print "ISBN                  ::"+("\ISBN                   ::".join(set(MES_12_ISBN))).encode('utf-8')
+			print "ISSN                  ::"+("\ISSN                   ::".join(set(MES_13_ISSN))).encode('utf-8')
+			print "GC CATALOGUE NO       ::"+MES_14_gc_catalogue_number
+			print "DEPT. CATALOGUE NO    ::"+MES_15_dept_catalogue_number.encode('utf-8')
+			print "WEEK CHECKLIST NO     ::"+MES_16_weekly_checklist_number.encode('utf-8')
+			print "FILE CODE             ::"+MES_17_file_code.encode('utf-8')
+			print "GC DOCS NO            ::"+MES_18_gc_docs_number.encode('utf-8')
+			print "LAC_IDENT             ::"+MES_19_LAC_identifier.encode('utf-8')
+			print "AMICUS NO             ::"+MES_20_amicus_identifier.encode('utf-8')
+			print "CATALOGUE SYSTEM NO   ::"+MES_21_PWGSC_identifier.encode('utf-8')
+			print "DOI                   ::"+("\nDOI                   ::".join(set(MES_22_DOI))).encode('utf-8')
+			print "Series Title          ::"+("\nSeries Title          ::".join(set(MES_23_series_title))).encode('utf-8')
+			print "Series Number         ::"+("\nSeries Number         ::".join(set(MES_24_series_number))).encode('utf-8')
+			print "FREQUENCY             ::"+MES_25_frequency_of_serial.encode('utf-8')
+			print "FORMER FREQUENCY      ::"+("\nFORMER FREQUENCY      ::".join(set(MES_26_former_frequency))).encode('utf-8')
+			print "NUM & CHRONO          ::"+("\nNUM & CHRONO          ::".join(set(MES_27_num_and_chrono_des))).encode('utf-8')
+			print "FILETYPE              ::"+MES_28_file_type.encode('utf-8')
+			print "LANGUAGE              ::"+("\nLANGUAGE              ::".join(set(MES_29_language))).encode('utf-8')
+			print "OTHER LANGUAGE        ::"+("\nOTHER LANGUAGE        ::".join(set(MES_30_language_other))).encode('utf-8')
+			print "TYPE                  ::"+("\nTYPE                  ::".join(set(MES_31_type))).encode('utf-8')
+			print "FORMAT                ::"+("\nFORMAT                ::".join(set(MES_32_format))).encode('utf-8')
+			print "SIZE                  ::"+("\SIZE                   ::".join(set(MES_33_size))).encode('utf-8')
+			print "PAGES                 ::"+("\nPAGES                 ::".join(set(MES_34_number_of_pages))).encode('utf-8')
+			print "ACCESS URL            ::"+("\nACCESS URL            ::".join(set(MES_35_access_url))).encode('utf-8')
+			print "LICENSE               ::"+MES_36_licence.encode('utf-8')
+			print "======================================================================"
 
-		print "======================================================================"
+		if output_json:
+			print json.dumps(json_record)
+			#print json.dumps(json_record, sort_keys=True, indent=4, separators=(',', ': '))
 
-#		json_record = {}
-#		json_record['issn'] = MES_13_ISSN
-#		json_record['isbn'] = MES_12_ISBN
-#
-#{
-#"issn": "338383383", 
-#"isbn": "29229229", 
-#"num_tags": 0, 
-#"frequency": "Weekly", 
-#"dept_catalogue_number": "55555", 
-#"weekly_checklist_number": "6", 
-#"description_ml": {"en": "My Description", "fr": "ma description"}, 
-#"former_frequency": "Monthly", 
-#"gc_docs_number": "", 
-#"author": "Sir John A MacDonald", 
-#"author_email": null, 
-#"keywords_ml": {"en": "One, Two", "fr": "un, deux"}, 
-#"gc_org": "statcan", 
-#"catalogue_number": "3456356", 
-#"license_id": "ca-ogl-lgo", 
-#"type": "doc", 
-#"resources": [
-#{"format_description_ml": {"en": "PDF", "fr": "PDF"},  
-# "size": "1230000",  
-# "languages": "en, fr",  
-# "numeric_designation_ml": {"en": "1234", "fr": "2345"},  
-# "format": "PDF",  
-# "date_published": "2014-08-22",  
-# "nature_genre_ml": {"en": "book", "fr": "libre"}, 
-# "pages": 120,  
-# "url": "http://publications.gc.ca/collections/Collection/CP32-85-2002E.pdf",  
-# "date_created": "2014-08-22"
-#}], 
-#"amicus_identifier": "34563456", 
-#"lac_identifier": "34563456", 
-#"series_number_ml": {"en": "1111", "fr": "2222"}, 
-#"subject_ml": {"en": "geomatics", "fr": "g\u00e9omatique"}, 
-#"file_code": "QWERTY", 
-#"doi": "", 
-#"name": "lac10111011001", 
-#"series_title_ml": {"en": "My Title", "fr": "mon titre"}, 
-#"gc_catalogue_number": "4444", 
-#"license_url": "http://ocl-cal.gc.ca/eic/site/012.nsf/eng/00873.html", 
-#"title_ml": {"en": "Some Document", "fr": "quelque document"}, 
-#"title": "lac10111011001"
-#}
-#
-#		json_output
-
-
-
-
-
+	# Sanity checking and short cycle testing
+	if fuse == 1:
+		break
+	fuse -= 1
