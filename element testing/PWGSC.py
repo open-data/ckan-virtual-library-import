@@ -727,7 +727,9 @@ for key, value in global_json.iteritems() :
     		global_json[key]['other_language_url'] = 'Other Language Edition / Édition dans une autre langue :'+display_ole
 
 for key, value in global_json.iteritems() :
-	print value
+	#global_json[] json.dumps(json_record)
+	#print json.dumps(json_record, sort_keys=True, indent=4, separators=(',', ': '))
+	print json.dumps(value)
 
 
 #    			print '['+str(len(urls))+'] record '+key.encode('utf-8')+'('+value['name']+'): '+url+' (.../id='+global_json[url]['name']+')'
