@@ -299,7 +299,8 @@ for record in root.iter('record'):
 		yymmdd_datestring = r[0].text.strip()
 		MES_10_modification_Date = yymmdd_datestring[:4]+'-'+yymmdd_datestring[4:6]+'-'+yymmdd_datestring[6:8]
 
-	json_record['resources'][0]['date_modified'] = MES_10_modification_Date
+	json_record['date_modified'] = MES_10_modification_Date
+	#json_record['resources'][0]['date_modified'] = MES_10_modification_Date
 
 # MES 11
 	# NOT AVAILABLE FROM LAC
