@@ -39,6 +39,8 @@ json_output = []
 input_files = ['monographs-monographies.xml', 'periodicals-periodiques.xml', 'series-series.xml']
 #input_files = ['series-series.xml']
 
+global_json = {}
+
 for input_file in input_files:
 
 	# Report import file marker
@@ -115,6 +117,7 @@ for input_file in input_files:
 		json_record['type'] ='doc'
 		json_record['license_id'] = 'ca-ogl-lgo'
 
+		record_about = record.attrib['{http://www.w3.org/1999/02/22-rdf-syntax-ns#}about']
 
 ## MES 29
 
@@ -292,8 +295,19 @@ for input_file in input_files:
 			json_record['subject_ml']['en'] = ','.join(bits_en)
 		if(len(bits_fr)):
 			json_record['subject_ml']['fr'] = ','.join(bits_en)
+
+
 		if(len(json_record['subject_ml']) < 1):
-			json_record['subject_ml'] = ['Government and Politics']
+			for lang in MES_29_language:
+				if lang == 'fra':
+					json_record['subject_ml']['fr'] = 'Gouvernement et vie politique'
+				elif lang == 'fre':
+					json_record['subject_ml']['fr'] = 'Gouvernement et vie politique'
+				else:
+					json_record['subject_ml']['en'] = 'Government and Politics'
+
+
+			
 			#del json_record['subject_ml']
 
 
@@ -630,7 +644,14 @@ for input_file in input_files:
 					MES_35_access_url.append(url_bits[1].strip())
 
 		if(MES_35_access_url[0] != '(M) ERROR MES element 35'):
-			json_record['resources'][0]['url'] = ','.join(MES_35_access_url)
+			base_resource = json_record['resources'][0]
+			json_record['resources'] = []
+			for url in MES_29_language:
+				new_resource = dict(base_resource)
+				new_resource['url'] = url
+				json_record['resources'].append(new_resource)
+				
+				#json_record['resources'][0]['url'] = ','.join(MES_35_access_url)
 
 	#
 	#	## Uncomment to display missing Canadiana numbers
@@ -680,15 +701,39 @@ for input_file in input_files:
 			print "FORMAT                ::"+("\nFORMAT                ::".join(set(MES_32_format))).encode('utf-8')
 			print "SIZE                  ::"+("\SIZE                   ::".join(set(MES_33_size))).encode('utf-8')
 			print "PAGES                 ::"+("\nPAGES                 ::".join(set(MES_34_number_of_pages))).encode('utf-8')
-			print "ACCESS URL            ::"+("\nACCESS URL            ::".join(set(MES_35_access_url))).encode('utf-8')
+			print str(len(MES_35_access_url))+"ACCESS URL            ::"+("\nACCESS URL            ::".join(set(MES_35_access_url))).encode('utf-8')
 			print "LICENSE               ::"+MES_36_licence.encode('utf-8')
 			print "======================================================================"
 
 		if output_json:
-			print json.dumps(json_record)
+			global_json[record_about] = json_record
+			#global_json[] json.dumps(json_record)
 			#print json.dumps(json_record, sort_keys=True, indent=4, separators=(',', ': '))
 
-	# Sanity checking and short cycle testing
-	if fuse == 1:
-		break
-	fuse -= 1
+		# Sanity checking and short cycle testing
+		# print fuse
+		if fuse == 1:
+			break
+		fuse -= 1
+
+for key, value in global_json.iteritems() :
+    if 'other_language_url' in value:
+    	urls = value['other_language_url'].split(',')
+    	display_ole = ''
+    	for url in urls:
+    		if url in global_json:
+    			display_ole = display_ole +  '<br><a href="'+global_json[url]['name']+'">'+global_json[url]['name']+'</a>'
+    	if display_ole != '':
+    		global_json[key]['other_language_url'] = 'Other Language Edition / Édition dans une autre langue :'+display_ole
+
+for key, value in global_json.iteritems() :
+	print value
+
+
+#    			print '['+str(len(urls))+'] record '+key.encode('utf-8')+'('+value['name']+'): '+url+' (.../id='+global_json[url]['name']+')'
+#    		else:
+#    			print "Missing:"+key.encode('utf-8')+'[ '+url.encode('utf-8')+' ]'
+
+
+
+
