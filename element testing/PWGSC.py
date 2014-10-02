@@ -646,7 +646,7 @@ for input_file in input_files:
 		if(MES_35_access_url[0] != '(M) ERROR MES element 35'):
 			base_resource = json_record['resources'][0]
 			json_record['resources'] = []
-			for url in MES_29_language:
+			for url in MES_35_access_url:
 				new_resource = dict(base_resource)
 				new_resource['url'] = url
 				json_record['resources'].append(new_resource)
