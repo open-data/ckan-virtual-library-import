@@ -23,7 +23,8 @@ if len(sys.argv):
 		output_human = False
 		output_json  = False
 
-f = codecs.open("../data/LAC_records_complete.xml", "r", "utf-8")
+f = codecs.open("../data/vl_rec_list_pass2.xml", "r", "utf-8")
+#f = codecs.open("../data/LAC_records_complete.xml", "r", "utf-8")
 root = etree.fromstring(f.read())
 
 # Report Header
