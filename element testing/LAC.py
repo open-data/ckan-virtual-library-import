@@ -494,7 +494,16 @@ for record in root.iter('record'):
 		MES_35_access_url = bits
 
 	if(MES_35_access_url[0] != '(M) ERROR MES element 35'):
-		json_record['resources'][0]['url'] = ','.join(MES_35_access_url)
+		base_resource = json_record['resources'][0]
+		json_record['resources'] = []
+		for url in MES_35_access_url:
+			if url != '':
+				new_resource = dict(base_resource)
+				new_resource['url'] = url
+				json_record['resources'].append(new_resource)
+
+#	if(MES_35_access_url[0] != '(M) ERROR MES element 35'):
+#		json_record['resources'][0]['url'] = ','.join(MES_35_access_url)
 
 	## Uncomment to display missing Canadiana numbers
 	#if(MES_1_metadata_identifier == 'ERROR MES element 1'):
