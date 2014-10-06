@@ -104,7 +104,7 @@ for record in root.iter('record'):
 	if(len(r)):
 		cleanup = r[0].text.strip()
 		cleanup = cleanup.split(' ', 1)[0]
-		MES_1_metadata_identifier = cleanup 
+		MES_1_metadata_identifier = cleanup.lower()
 
 	json_record['name'] = 'collections-'+cleanup
 
