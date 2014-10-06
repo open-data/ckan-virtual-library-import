@@ -60,3 +60,5 @@ data/description_types.txt
 element testing/DUMP_*
 data/LAC_records_complete.xml
 data/*.jl
+
+data/vl_rec_list_pass2.xml
