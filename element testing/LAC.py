@@ -7,10 +7,11 @@ from lxml import etree
 import re
 import time
 import json
-
+import os
 # Sanity checking and short cycle testing
 # 0 = unlimited, any other number is a maximum tollerance
 fuse = 0
+valid_file_formats = ['.doc','.htm','.html','.epub','.jpg','.odt','.pdf','.ppt','.rtf','.txt']
 
 # Split tasks, same blocks of logic per MES
 output_human = False
@@ -23,8 +24,7 @@ if len(sys.argv):
 		output_human = False
 		output_json  = False
 
-f = codecs.open("../data/vl_rec_list_pass2.xml", "r", "utf-8")
-#f = codecs.open("../data/LAC_records_complete.xml", "r", "utf-8")
+f = codecs.open("../data/LAC_records_complete.xml", "r", "utf-8")
 root = etree.fromstring(f.read())
 
 # Report Header
@@ -438,8 +438,6 @@ for record in root.iter('record'):
 	# NA
 # MES 31
 	# TBD
-# MES 32
-	# Automatically generated, match with Controlled List
 # MES 33
 	# NA 
 # MES 34
@@ -496,11 +494,44 @@ for record in root.iter('record'):
 	if(MES_35_access_url[0] != '(M) ERROR MES element 35'):
 		base_resource = json_record['resources'][0]
 		json_record['resources'] = []
+		distinct_urls = []
+		distinct_formats = []
 		for url in MES_35_access_url:
 			if url != '':
-				new_resource = dict(base_resource)
-				new_resource['url'] = url
-				json_record['resources'].append(new_resource)
+				#distinct_urls.append(url)
+				#print "STRING:\n"+url
+				for match in re.finditer('(https?://[^\s?#@]+)', url, re.S):
+					distinct_urls.append(match.group(1))
+
+		distinct_urls = list(set(distinct_urls))
+		for distinct_url in distinct_urls:
+			new_resource = dict(base_resource)
+			new_resource['url'] = distinct_url
+
+			interim_format = os.path.splitext(distinct_url)[1].lower()
+			if interim_format in valid_file_formats:
+				distinct_formats.append(interim_format)
+				new_resource['format'] = interim_format
+				#print interim_format
+
+			json_record['resources'].append(new_resource)
+
+		if len(distinct_urls):
+			MES_35_access_url = list(distinct_urls)
+		else:
+			MES_35_access_url = ['(M) ERROR MES element 35']
+		if len(distinct_formats):
+			MES_32_format = list(distinct_formats)
+		else:
+			MES_32_format = ['(M-C) ERROR MES element 32']
+
+
+	
+
+
+#M [20117014656][2] http://epe.lac-bac.gc.ca/100/200/301/hrsdc-rhdcc/ http://epe.lac-bac.gc.ca/100/200/301/hrsdc-rhdcc/essential_skills_apprenticeship/what_are_essential_trades/HS18-9-1-2009-fra.pdf
+#M [20137039581][2] http://publications.gc.ca/collections/collection_2013/ec/CW69-5-525A-eng.pdf ; http://publications.gc.ca/collections/collection_2013/ec/CW69-5-525B-eng.pdf
+#M [2013703959X][2] http://publications.gc.ca/collections/collection_2013/ec/CW69-5-525A-fra.pdf ; http://publications.gc.ca/collections/collection_2013/ec/CW69-5-525B-fra.pdf
 
 #	if(MES_35_access_url[0] != '(M) ERROR MES element 35'):
 #		json_record['resources'][0]['url'] = ','.join(MES_35_access_url)
@@ -528,6 +559,8 @@ for record in root.iter('record'):
 	if MES_8_date_resource_published  		== '(M) ERROR MES element 8':#   or  MES_8_date_resource_published == '':
 		continue
 	if MES_29_language[0]                	== '(M) ERROR MES element 29':#  or ''.join(MES_29_language) == '':
+		continue
+	if MES_32_format[0]						== '(M-C) ERROR MES element 32':#  or ''.join(MES_35_access_url) == '':
 		continue
 	if MES_35_access_url[0]              	== '(M) ERROR MES element 35':#  or ''.join(MES_35_access_url) == '':
 		continue

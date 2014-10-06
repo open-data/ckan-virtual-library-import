@@ -7,10 +7,12 @@ from lxml import etree
 import re
 import time
 import json
+import os
 
 # Sanity checking and short cycle testing
 # 0 = unlimited, any other number is a maximum tollerance
 fuse = 0
+valid_file_formats = ['.doc','.htm','.html','.epub','.jpg','.odt','.pdf','.ppt','.rtf','.txt']
 
 # Split tasks, same blocks of logic per MES
 output_human = False
@@ -167,6 +169,7 @@ for input_file in input_files:
 			json_record['title_ml']['fr'] = ','.join(bits_fr)
 		#if(len(json_record['title_ml']) < 1):
 		#	del json_record['title_ml']
+
 
 		joined_title = ''
 		if 'en' in json_record['title_ml']:
@@ -646,12 +649,37 @@ for input_file in input_files:
 		if(MES_35_access_url[0] != '(M) ERROR MES element 35'):
 			base_resource = json_record['resources'][0]
 			json_record['resources'] = []
+			distinct_urls = []
+			distinct_formats = []
 			for url in MES_35_access_url:
-				new_resource = dict(base_resource)
-				new_resource['url'] = url
-				json_record['resources'].append(new_resource)
+				distinct_urls.append(url)
 				
-				#json_record['resources'][0]['url'] = ','.join(MES_35_access_url)
+			distinct_urls = list(set(distinct_urls))
+			for distinct_url in distinct_urls:
+				new_resource = dict(base_resource)
+				new_resource['url'] = distinct_url
+
+				interim_format = os.path.splitext(distinct_url)[1].lower()
+				if interim_format in valid_file_formats:
+					distinct_formats.append(interim_format)
+					new_resource['format'] = interim_format
+					#print interim_format
+
+				json_record['resources'].append(new_resource)
+
+			if len(distinct_urls):
+				MES_35_access_url = list(distinct_urls)
+			else:
+				MES_35_access_url = ['(M) ERROR MES element 35']
+			if len(distinct_formats):
+				MES_32_format = list(distinct_formats)
+			else:
+				MES_32_format = ['(M-C) ERROR MES element 32']
+
+		#continue
+
+		if MES_32_format[0]						== '(M-C) ERROR MES element 32':#  or ''.join(MES_35_access_url) == '':
+			continue
 
 	#
 	#	## Uncomment to display missing Canadiana numbers
