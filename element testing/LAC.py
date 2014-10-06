@@ -103,8 +103,8 @@ for record in root.iter('record'):
 	r = record.xpath("identifier[@type='canadiana']")
 	if(len(r)):
 		cleanup = r[0].text.strip()
-		cleanup = cleanup.split(' ', 1)[0]
-		MES_1_metadata_identifier = cleanup.lower()
+		cleanup = cleanup.split(' ', 1)[0].lower()
+		MES_1_metadata_identifier = cleanup
 
 	json_record['name'] = 'collections-'+cleanup
 
@@ -512,6 +512,9 @@ for record in root.iter('record'):
 			if interim_format in valid_file_formats:
 				distinct_formats.append(interim_format)
 				new_resource['format'] = interim_format
+			#else:
+			#	print "FORMAT:"+interim_format
+			#	pass
 				#print interim_format
 
 			json_record['resources'].append(new_resource)
@@ -525,7 +528,7 @@ for record in root.iter('record'):
 		else:
 			MES_32_format = ['(M-C) ERROR MES element 32']
 
-
+	#continue
 	
 
 
