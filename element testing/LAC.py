@@ -11,7 +11,7 @@ import os
 # Sanity checking and short cycle testing
 # 0 = unlimited, any other number is a maximum tollerance
 fuse = 0
-valid_file_formats = ['.doc','.htm','.html','.epub','.jpg','.odt','.pdf','.ppt','.rtf','.txt']
+valid_file_formats = ['.doc','.htm','.html','.epub','.jpg','.odt','.pdf','.ppt','.rtf','.txt','.wpd']
 
 # Split tasks, same blocks of logic per MES
 output_human = False
@@ -513,7 +513,7 @@ for record in root.iter('record'):
 				distinct_formats.append(interim_format)
 				new_resource['format'] = interim_format
 			#else:
-			#	print "FORMAT:"+interim_format
+			#	print "["+MES_1_metadata_identifier+"] FORMAT:"+interim_format
 			#	pass
 				#print interim_format
 
