@@ -554,7 +554,8 @@ for input_file in input_files:
 						bits.append(m.group(1).strip())
 		if(len(bits)):
 			MES_30_language_other = bits
-			json_record['other_language_url'] = ','.join(MES_30_language_other)			
+			#json_record['other_language_url'] = ','.join(MES_30_language_other)			
+			json_record['other_language_url'] = list(bits)
 
 ## MES 31
 
@@ -732,7 +733,7 @@ for input_file in input_files:
 			print "FORMAT                ::"+("\nFORMAT                ::".join(set(MES_32_format))).encode('utf-8')
 			print "SIZE                  ::"+("\SIZE                   ::".join(set(MES_33_size))).encode('utf-8')
 			print "PAGES                 ::"+("\nPAGES                 ::".join(set(MES_34_number_of_pages))).encode('utf-8')
-			print str(len(MES_35_access_url))+"ACCESS URL            ::"+("\nACCESS URL            ::".join(set(MES_35_access_url))).encode('utf-8')
+			print "ACCESS URL            ::"+("\nACCESS URL            ::".join(set(MES_35_access_url))).encode('utf-8')
 			print "LICENSE               ::"+MES_36_licence.encode('utf-8')
 			print "======================================================================"
 
@@ -747,16 +748,16 @@ for input_file in input_files:
 			break
 		fuse -= 1
 
-for key, value in global_json.iteritems() :
-    if 'other_language_url' in value:
-    	urls = value['other_language_url'].split(',')
-    	display_ole = ''
-    	for url in urls:
-    		if url in global_json:
-    			display_ole = display_ole +  '<br><a href="'+global_json[url]['name']+'">'+global_json[url]['name']+'</a>'
-    	if display_ole != '':
-    		global_json[key]['other_language_url'] = 'Other Language Edition / Édition dans une autre langue :'+display_ole
-
+#for key, value in global_json.iteritems() :
+#    if 'other_language_url' in value:
+#    	urls = value['other_language_url'].split(',')
+#    	display_ole = ''
+#    	for url in urls:
+#    		if url in global_json:
+#    			display_ole = display_ole +  '<br><a href="'+global_json[url]['name']+'">'+global_json[url]['name']+'</a>'
+#    	if display_ole != '':
+#    		global_json[key]['other_language_url'] = 'Other Language Edition / Édition dans une autre langue :'+display_ole
+#
 for key, value in global_json.iteritems() :
 	#global_json[] json.dumps(json_record)
 	#print json.dumps(json_record, sort_keys=True, indent=4, separators=(',', ': '))
