@@ -554,8 +554,8 @@ for input_file in input_files:
 						bits.append(m.group(1).strip())
 		if(len(bits)):
 			MES_30_language_other = bits
-			#json_record['other_language_url'] = ','.join(MES_30_language_other)			
-			json_record['other_language_url'] = list(bits)
+			json_record['other_language_url'] = ','.join(MES_30_language_other)			
+			#json_record['other_language_url'] = list(bits)
 
 ## MES 31
 
