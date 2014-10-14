@@ -8,22 +8,36 @@ import re
 import time
 import json
 import os
+import csv
 
 # Sanity checking and short cycle testing
 # 0 = unlimited, any other number is a maximum tollerance
 fuse = 0
 valid_file_formats = ['.doc','.htm','.html','.epub','.jpg','.odt','.pdf','.ppt','.rtf','.txt','.wpd']
 
+linkcheck_status = {}
+
+with open('PWGSCLINKS.csv', 'r') as csvfile:
+	spamreader = csv.reader(csvfile)
+	for row in spamreader:
+		if row[0] == '':
+			continue
+		#print ', '.join(row)
+		#print row
+		linkcheck_status[row[1]] = row[0]
+
 # Split tasks, same blocks of logic per MES
-output_human = False
-output_json  = True
+output_human		= False
+output_linkerrors 	= False
+output_json  		= True
 if len(sys.argv):
+	output_json  		= False
 	if 'report' in sys.argv:
-		output_human = True
-		output_json  = False
-	if 'debug' in sys.argv:
-		output_human = False
-		output_json  = False
+		output_human	= True
+	elif 'linkerrors' in sys.argv:
+		output_human	= True
+	else:
+		output_json 	= True
 
 # Report Header
 iso_time = time.strftime("%Y-%m-%dT%H:%M:%S", time.gmtime())
@@ -95,24 +109,6 @@ for input_file in input_files:
 		MES_36_licence                 = '(M-C) ERROR MES element 36'
 
 		iso_conversion = { 'Miscellaneous languages' : 'mis','Inuinnaqtun' : 'mis','Inuvialuqtun' : 'mis','Albanian' : 'alb','Amharic' : 'amh','Arabic' : 'ara','Bengali' : 'ben','Catalan' : 'cat','Chinese' : 'chi','Chipewyan' : 'chp','Cree' : 'cre','Creoles and pidgins' : 'crp','Croatian' : 'hrv','Dutch' : 'dut','English' : 'eng','French' : 'fre','Galician' : 'glg','German' : 'ger','Greek, Modern (1453-)' : 'gre','Gujarati' : 'guj','Hindi' : 'hin','Hungarian' : 'hun','Indonesian' : 'ind','Inuktitut' : 'iku','Italian' : 'ita','Japanese' : 'jpn','Korean' : 'kor','North American Indian' : 'nai','Ojibwa' : 'oji','Persian' : 'per','Punjabi' : 'pan','Philippine (Other)' : 'phi','Polish' : 'pol','Portuguese' : 'por','Romanian' : 'rum','Russian' : 'rus','Serbian' : 'srp','Somali' : 'som','Spanish; Castilian' : 'spa','Swahili' : 'swa','Tagalog' : 'tgl','Tamil' : 'tam','Turkish' : 'tur','Urdu' : 'urd','Vietnamese' : 'vie' }
-
-#		#r = record.xpath("dc:identifier[@xml:lang='en']", namespaces=record.nsmap)
-#		r = record.xpath("dc:description", namespaces=record.nsmap)
-#		if(len(r)):
-#			for cn in r:
-#				m = re.search('{([^}]+)}\s+(.*)', cn.text.strip())
-#				if m:
-#					print m.group(1).strip().encode('utf8')
-
-#		r = record.xpath("dc:language[@xml:lang='en']", namespaces=record.nsmap)
-#		#r = record.xpath("name[@type='corporate']/namePart")
-#		if(len(r)):
-#			MES_29_language = []
-#			for namePart in r:
-#				print namePart.text.strip()
-#
-#
-#		continue
 
 		json_record = {}
 		json_record['resources'] = [{}]
@@ -555,7 +551,7 @@ for input_file in input_files:
 		if(len(bits)):
 			MES_30_language_other = bits
 			json_record['other_language_url'] = ','.join(MES_30_language_other)			
-			#json_record['other_language_url'] = list(bits)
+			#json_record['other_language_url'] = langist(bits)
 
 ## MES 31
 
@@ -626,7 +622,7 @@ for input_file in input_files:
 		# NA 
 
 ## MES 34
-	#
+
 	#	r = record.xpath("dc:description[@xml:lang='en']", namespaces=record.nsmap)
 	#	if(len(r)):
 	#		bits = []
@@ -635,6 +631,7 @@ for input_file in input_files:
 	#				bits.append(title.text.strip())
 	#		if(len(bits)):
 	#			MES_34_number_of_pages = bits
+
 ## MES 35
 
 		r = record.xpath("dc:identifier", namespaces=record.nsmap)
@@ -657,6 +654,15 @@ for input_file in input_files:
 				
 			distinct_urls = list(set(distinct_urls))
 			for distinct_url in distinct_urls:
+
+				if distinct_url not in linkcheck_status:
+					#print "not in"
+#				continue
+					pass
+				elif linkcheck_status[distinct_url][:3] != '200':
+					#print linkcheck_status[distinct_url]
+					continue
+
 				new_resource = dict(base_resource)
 				new_resource['url'] = distinct_url
 
@@ -737,6 +743,20 @@ for input_file in input_files:
 			print "LICENSE               ::"+MES_36_licence.encode('utf-8')
 			print "======================================================================"
 
+		if output_linkerrors:
+				for url35 in set(MES_35_access_url):
+					if url35 not in linkcheck_status:
+						print '"NO LINK CHECK",'+MES_1_metadata_identifier+',"'+url35.encode('utf-8')+'"'
+					elif linkcheck_status[url35] == '200 no error':
+						continue
+					elif linkcheck_status[url35] == "200 no error < 302 found":
+						continue
+					elif linkcheck_status[url35] == "200 no error < 301 moved permanently":
+						continue
+
+					else:
+						print '"'+linkcheck_status[url35]+'","'+MES_1_metadata_identifier+'","'+url35.encode('utf-8')+'"'
+
 		if output_json:
 			global_json[record_about] = json_record
 			#global_json[] json.dumps(json_record)
@@ -764,9 +784,6 @@ for key, value in global_json.iteritems() :
 	print json.dumps(value)
 
 
-#    			print '['+str(len(urls))+'] record '+key.encode('utf-8')+'('+value['name']+'): '+url+' (.../id='+global_json[url]['name']+')'
-#    		else:
-#    			print "Missing:"+key.encode('utf-8')+'[ '+url.encode('utf-8')+' ]'
 
 
 

@@ -8,24 +8,36 @@ import re
 import time
 import json
 import os
+import csv
+
 # Sanity checking and short cycle testing
 # 0 = unlimited, any other number is a maximum tollerance
 fuse = 0
 valid_file_formats = ['.doc','.htm','.html','.epub','.jpg','.odt','.pdf','.ppt','.rtf','.txt','.wpd']
 
-# Split tasks, same blocks of logic per MES
-output_human = False
-output_json  = True
-if len(sys.argv):
-	if 'report' in sys.argv:
-		output_human = True
-		output_json  = False
-	if 'debug' in sys.argv:
-		output_human = False
-		output_json  = False
+linkcheck_status = {}
 
-f = codecs.open("../data/LAC_records_complete.xml", "r", "utf-8")
-root = etree.fromstring(f.read())
+with open('LACLINKS.csv', 'r') as csvfile:
+	spamreader = csv.reader(csvfile)
+	for row in spamreader:
+		if row[0] == '':
+			continue
+		#print ', '.join(row)
+		#print row
+		linkcheck_status[row[1]] = row[0]
+
+# Split tasks, same blocks of logic per MES
+output_human		= False
+output_linkerrors 	= False
+output_json  		= True
+if len(sys.argv):
+	output_json  		= False
+	if 'report' in sys.argv:
+		output_human	= True
+	elif 'linkerrors' in sys.argv:
+		output_human	= True
+	else:
+		output_json 	= True
 
 # Report Header
 iso_time = time.strftime("%Y-%m-%dT%H:%M:%S", time.gmtime())
@@ -38,6 +50,24 @@ if output_human:
 	print "==== (O)   Optional==================================================="
 	print "==== (M-C) Mandatory, CKAN generated ================================="
 	print "======================================================================"
+
+f = codecs.open("../data/LAC_records_complete.xml", "r", "utf-8")
+root = etree.fromstring(f.read())
+
+##################################################
+#
+#
+#
+#
+#
+#  This space intentionally left blank to sync to PWGSC
+#
+#
+#
+#
+#
+#
+##################################################
 
 for record in root.iter('record'):
 
@@ -78,12 +108,17 @@ for record in root.iter('record'):
 	MES_35_access_url              = ['(M) ERROR MES element 35']
 	MES_36_licence                 = '(M-C) ERROR MES element 36'
 
+
+
 	json_record = {}
 	json_record['resources'] = [{}]
 	json_record['type'] ='doc'
 	json_record['license_id'] = 'ca-ogl-lgo'
 
+
+
 # MES 29
+
 	r = record.xpath("language/languageTerm[@type='code' and @authority='iso639-2b']")
 	if(len(r)):
 		MES_29_language = []
@@ -444,6 +479,7 @@ for record in root.iter('record'):
 	# NA 
 
 # MES 35
+
 	bits = []
 	r = record.xpath("note[@type='HTTP-Resource']")
 	if(len(r)):
@@ -505,6 +541,15 @@ for record in root.iter('record'):
 
 		distinct_urls = list(set(distinct_urls))
 		for distinct_url in distinct_urls:
+
+			if distinct_url not in linkcheck_status:
+				#print "not in"
+#				continue
+				pass
+			elif linkcheck_status[distinct_url][:3] != '200':
+				#print linkcheck_status[distinct_url]
+				continue
+
 			new_resource = dict(base_resource)
 			new_resource['url'] = distinct_url
 
@@ -528,30 +573,6 @@ for record in root.iter('record'):
 		else:
 			MES_32_format = ['(M-C) ERROR MES element 32']
 
-	#continue
-	
-
-
-#M [20117014656][2] http://epe.lac-bac.gc.ca/100/200/301/hrsdc-rhdcc/ http://epe.lac-bac.gc.ca/100/200/301/hrsdc-rhdcc/essential_skills_apprenticeship/what_are_essential_trades/HS18-9-1-2009-fra.pdf
-#M [20137039581][2] http://publications.gc.ca/collections/collection_2013/ec/CW69-5-525A-eng.pdf ; http://publications.gc.ca/collections/collection_2013/ec/CW69-5-525B-eng.pdf
-#M [2013703959X][2] http://publications.gc.ca/collections/collection_2013/ec/CW69-5-525A-fra.pdf ; http://publications.gc.ca/collections/collection_2013/ec/CW69-5-525B-fra.pdf
-
-#	if(MES_35_access_url[0] != '(M) ERROR MES element 35'):
-#		json_record['resources'][0]['url'] = ','.join(MES_35_access_url)
-
-	## Uncomment to display missing Canadiana numbers
-	#if(MES_1_metadata_identifier == 'ERROR MES element 1'):
-	#	print MES_1_metadata_identifier+"\n"+MES_2_title+"\n\n"
-
-	## Uncomment to only display valid Canadiana numbers quoted to show spacing
-	#if(MES_1_metadata_identifier != 'ERROR MES element 1'):
-	#	print '"'+MES_1_metadata_identifier+'"'#+"\n"+MES_2_title+"\n\n"
-
-	#if MES_6_subject[0] != 'ERROR MES element 6':
-	#	continue
-
-
-
 	if MES_1_metadata_identifier 	        == '(M-C) ERROR MES element 1':# or  MES_1_metadata_identifier == '':
 		continue
 	if MES_2_title[0] 						== '(M) ERROR MES element 2':#   or  ''.join(MES_2_title) == '':
@@ -568,30 +589,6 @@ for record in root.iter('record'):
 	if MES_35_access_url[0]              	== '(M) ERROR MES element 35':#  or ''.join(MES_35_access_url) == '':
 		continue
 
-#	if MES_1_metadata_identifier 	        != '(M-C) ERROR MES element 1' and  MES_1_metadata_identifier != '':
-#		continue
-#	if MES_2_title[0] 						!= '(M) ERROR MES element 2'   and  ''.join(MES_2_title) != '':
-#		continue
-#	if MES_3_GC_Department_or_Agency[0]		!= '(M) ERROR MES element 3'   and  ''.join(MES_3_GC_Department_or_Agency) != '':
-#		continue
-#	#if MES_6_subject[0] 					!= '(M) ERROR MES element 6'   and  MES_6_subject != '':
-#	if MES_8_date_resource_published  		!= '(M) ERROR MES element 8'   and  MES_8_date_resource_published != '':
-#		continue
-#	if MES_29_language[0]                	!= '(M) ERROR MES element 29'  and ''.join(MES_29_language) != '':
-#		continue
-#	if MES_35_access_url[0]              	!= '(M) ERROR MES element 35':  and ''.join(MES_35_access_url) != '':
-#		continue
-#	if MES_35_access_url[0]              	!= '(M) ERROR MES element 35':#  and ''.join(MES_35_access_url) != '':
-#		continue
-
-#	if "Pyroxasulfone, le 28 juillet 2014" != ''.join(set(MES_2_title)).encode('utf-8'):
-#		continue
-
-	#print json.dumps(json_record)
-#	print json.dumps(json_record, sort_keys=True, indent=4, separators=(',', ': '))
-
-#	print MES_1_metadata_identifier.encode('utf-8')
-#	
 	if output_human:
 		print "ID                    ::"+MES_1_metadata_identifier.encode('utf-8')
 		print "TITLE                 ::"+("\nTITLE                 ::".join(set(MES_2_title))).encode('utf-8')
@@ -631,6 +628,20 @@ for record in root.iter('record'):
 		print "LICENSE               ::"+MES_36_licence.encode('utf-8')
 		print "======================================================================"
 
+	if output_linkerrors:
+		for url35 in set(MES_35_access_url):
+			if url35 not in linkcheck_status:
+				print '"NO LINK CHECK",'+MES_1_metadata_identifier+',"'+url35.encode('utf-8')+'"'
+			elif linkcheck_status[url35] == '200 no error':
+				continue
+			elif linkcheck_status[url35] == "200 no error < 302 found":
+				continue
+			elif linkcheck_status[url35] == "200 no error < 301 moved permanently":
+				continue
+
+			else:
+				print '"'+linkcheck_status[url35]+'","'+MES_1_metadata_identifier+'","'+url35.encode('utf-8')+'"'
+
 	if output_json:
 		print json.dumps(json_record)
 		#print json.dumps(json_record, sort_keys=True, indent=4, separators=(',', ': '))
@@ -640,7 +651,6 @@ for record in root.iter('record'):
 		break
 	fuse -= 1
 
-#	print "[ "+MES_1_metadata_identifier+" ]ACCESS URL            ::"+(" | ".join(set(MES_35_access_url))).encode('utf-8')
 
 
 
