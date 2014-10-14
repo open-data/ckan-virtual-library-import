@@ -62,3 +62,9 @@ data/LAC_records_complete.xml
 data/*.jl
 
 data/vl_rec_list_pass2.xml
+
+data/vl_data_phase1.xml
+
+data/LAC_records_complete.20141012.xml
+
+element testing/LACTMP.txt
