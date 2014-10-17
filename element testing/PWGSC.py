@@ -761,15 +761,23 @@ for input_file in input_files:
 		fuse -= 1
 
 #for key, value in global_json.iteritems() :
-#    if 'other_language_url' in value:
-#    	urls = value['other_language_url'].split(',')
-#    	display_ole = ''
-#    	for url in urls:
-#    		if url in global_json:
-#    			display_ole = display_ole +  '<br><a href="'+global_json[url]['name']+'">'+global_json[url]['name']+'</a>'
-#    	if display_ole != '':
-#    		global_json[key]['other_language_url'] = 'Other Language Edition / Édition dans une autre langue :'+display_ole
-#
+#	if 'other_language_url' in value:
+#		urls = value['other_language_url'].split(',')
+#		display_ole = ''
+#		for url in urls:
+#			if url in global_json:
+#				display_ole = display_ole +  '<br><a href="'+global_json[url]['name']+'">'+global_json[url]['name']+'</a>'
+#		if display_ole != '':
+#			global_json[key]['other_language_url'] = 'Other Language Edition / Édition dans une autre langue :'+display_ole
+for key, value in global_json.iteritems() :
+	if 'other_language_url' in value:
+		urls = value['other_language_url'].split(',')
+		combine_ole = []
+		for url in urls:
+			if url in global_json:
+				combine_ole.append(global_json[url]['name'])
+		global_json[key]['other_language_url'] = ','.join(combine_ole)
+
 for key, value in global_json.iteritems() :
 	#global_json[] json.dumps(json_record)
 	#print json.dumps(json_record, sort_keys=True, indent=4, separators=(',', ': '))
