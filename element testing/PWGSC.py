@@ -108,7 +108,7 @@ for input_file in input_files:
 		MES_35_access_url              = ['(M) ERROR MES element 35']
 		MES_36_licence                 = '(M-C) ERROR MES element 36'
 
-		iso_conversion = { 'Miscellaneous languages' : 'mis','Inuinnaqtun' : 'mis','Inuvialuqtun' : 'mis','Albanian' : 'alb','Amharic' : 'amh','Arabic' : 'ara','Bengali' : 'ben','Catalan' : 'cat','Chinese' : 'chi','Chipewyan' : 'chp','Cree' : 'cre','Creoles and pidgins' : 'crp','Croatian' : 'hrv','Dutch' : 'dut','English' : 'eng','French' : 'fre','Galician' : 'glg','German' : 'ger','Greek, Modern (1453-)' : 'gre','Gujarati' : 'guj','Hindi' : 'hin','Hungarian' : 'hun','Indonesian' : 'ind','Inuktitut' : 'iku','Italian' : 'ita','Japanese' : 'jpn','Korean' : 'kor','North American Indian' : 'nai','Ojibwa' : 'oji','Persian' : 'per','Punjabi' : 'pan','Philippine (Other)' : 'phi','Polish' : 'pol','Portuguese' : 'por','Romanian' : 'rum','Russian' : 'rus','Serbian' : 'srp','Somali' : 'som','Spanish; Castilian' : 'spa','Swahili' : 'swa','Tagalog' : 'tgl','Tamil' : 'tam','Turkish' : 'tur','Urdu' : 'urd','Vietnamese' : 'vie' }
+		iso_conversion = { 'Miscellaneous languages' : 'mis','Inuinnaqtun' : 'mis','Inuvialuqtun' : 'mis','Albanian' : 'alb','Amharic' : 'amh','Arabic' : 'ara','Bengali' : 'ben','Catalan' : 'cat','Chinese' : 'chi','Chipewyan' : 'chp','Cree' : 'cre','Creoles and pidgins' : 'crp','Croatian' : 'hrv','Dutch' : 'dut','English' : 'eng','French' : 'fra','Galician' : 'glg','German' : 'ger','Greek, Modern (1453-)' : 'gre','Gujarati' : 'guj','Hindi' : 'hin','Hungarian' : 'hun','Indonesian' : 'ind','Inuktitut' : 'iku','Italian' : 'ita','Japanese' : 'jpn','Korean' : 'kor','North American Indian' : 'nai','Ojibwa' : 'oji','Persian' : 'per','Punjabi' : 'pan','Philippine (Other)' : 'phi','Polish' : 'pol','Portuguese' : 'por','Romanian' : 'rum','Russian' : 'rus','Serbian' : 'srp','Somali' : 'som','Spanish; Castilian' : 'spa','Swahili' : 'swa','Tagalog' : 'tgl','Tamil' : 'tam','Turkish' : 'tur','Urdu' : 'urd','Vietnamese' : 'vie' }
 
 		json_record = {}
 		json_record['resources'] = [{}]
@@ -124,8 +124,11 @@ for input_file in input_files:
 		if(len(r)):
 			MES_29_language = []
 			for namePart in r:
+				lang_test = namePart.text.strip()
+				if lang_test == 'fre':
+					lang_test = 'fra'
 				#print "LANGO:["+MES_1_metadata_identifier+"]:"+namePart.text.strip()
-				MES_29_language.append(iso_conversion[namePart.text.strip()])
+				MES_29_language.append(iso_conversion[lang_test])
 		json_record['resources'][0]['languages'] = ','.join(MES_29_language)
 
 ## MES 1
@@ -191,9 +194,6 @@ for input_file in input_files:
 #				if lang == 'eng':
 #					if 'en' not in json_record['title_ml']:
 #						json_record['title'] = json_record['title_ml']['fr']
-#				elif lang == 'fra' or lang == 'fre':
-#					if 'fr' not in json_record['title_ml']:
-#						json_record['title'] = json_record['title_ml']['en']
 #			#else:
 #			#	print "y : Not english or french [ "+lang+" ] : "+MES_1_metadata_identifier
 
@@ -299,8 +299,6 @@ for input_file in input_files:
 		if(len(json_record['subject_ml']) < 1):
 			for lang in MES_29_language:
 				if lang == 'fra':
-					json_record['subject_ml']['fr'] = 'Gouvernement et vie politique'
-				elif lang == 'fre':
 					json_record['subject_ml']['fr'] = 'Gouvernement et vie politique'
 				else:
 					json_record['subject_ml']['en'] = 'Government and Politics'
@@ -563,23 +561,17 @@ for input_file in input_files:
 					json_record['resources'][0]['nature_genre_ml']['en'] = 'monograph'
 				if lang == 'fra':
 					json_record['resources'][0]['nature_genre_ml']['fr'] = 'monographie'
-				if lang == 'fre':
-					json_record['resources'][0]['nature_genre_ml']['fr'] = 'monographie'
 		if input_file == 'periodicals-periodiques.xml':
 			for lang in MES_29_language:
 				if lang == 'eng':
 					json_record['resources'][0]['nature_genre_ml']['en'] = 'periodical'
 				if lang == 'fra':
 					json_record['resources'][0]['nature_genre_ml']['fr'] = 'periodique'
-				if lang == 'fre':
-					json_record['resources'][0]['nature_genre_ml']['fr'] = 'periodique'
 		if input_file == 'series-series.xml':
 			for lang in MES_29_language:
 				if lang == 'eng':
 					json_record['resources'][0]['nature_genre_ml']['en'] = 'series'
 				if lang == 'fra':
-					json_record['resources'][0]['nature_genre_ml']['fr'] = 'serie'
-				if lang == 'fre':
 					json_record['resources'][0]['nature_genre_ml']['fr'] = 'serie'
 
 		

@@ -123,7 +123,10 @@ for record in root.iter('record'):
 	if(len(r)):
 		MES_29_language = []
 		for language in r:
-			MES_29_language.append(language.text.strip())
+			lang_test = language.text.strip()
+			if lang_test == 'fre':
+				lang_test = 'fra'
+			MES_29_language.append(lang_test)
 	if MES_29_language[0] == '(M) ERROR MES element 29':
 		json_record['resources'][0]['languages'] = 'eng'
 	else:		
