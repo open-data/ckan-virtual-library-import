@@ -151,6 +151,42 @@ for record in root.iter('record'):
 			MES_2_title.append(title.text.strip())
 
 	json_record['title'] = ' | '.join(MES_2_title)
+	
+	#ISBD Values (IFLA):
+	json_record['title'] = json_record['title'].replace(u'[cartographic resource]','')
+	json_record['title'] = json_record['title'].replace(u'[document cartographique]','')
+	json_record['title'] = json_record['title'].replace(u'[electronic resource]','')
+	json_record['title'] = json_record['title'].replace(u'[ressource électronique]','')
+	json_record['title'] = json_record['title'].replace(u'[graphic]','')
+	json_record['title'] = json_record['title'].replace(u'[image fixe]','')
+	json_record['title'] = json_record['title'].replace(u'[microform]','')
+	json_record['title'] = json_record['title'].replace(u'[microforme]','')
+	json_record['title'] = json_record['title'].replace(u'[motion picture]','')
+	json_record['title'] = json_record['title'].replace(u'[film cinématographique]      ]','')
+	json_record['title'] = json_record['title'].replace(u'[multimedia resource]','')
+	json_record['title'] = json_record['title'].replace(u'[multimédia support]','')
+	json_record['title'] = json_record['title'].replace(u'[notated music]','')
+	json_record['title'] = json_record['title'].replace(u'[musique imprimée]','')
+	json_record['title'] = json_record['title'].replace(u'[printed text]','')
+	json_record['title'] = json_record['title'].replace(u'[texte imprimé]','')
+	json_record['title'] = json_record['title'].replace(u'[sound recording]','')
+	json_record['title'] = json_record['title'].replace(u'[enregistrement sonore]','')
+	json_record['title'] = json_record['title'].replace(u'[videorecording]','')
+	json_record['title'] = json_record['title'].replace(u'[enregistrement vidéo]','')
+	json_record['title'] = json_record['title'].replace(u'[visual projection]','')
+	json_record['title'] = json_record['title'].replace(u'[projection visuelle]','')
+	#LAC Values (not on ISBD list):
+	json_record['title'] = json_record['title'].replace(u'[braille]','')
+	json_record['title'] = json_record['title'].replace(u'[braille]','')
+	json_record['title'] = json_record['title'].replace(u'[computer file]','')
+	json_record['title'] = json_record['title'].replace(u'[fichier d\'ordinateur]','')
+	json_record['title'] = json_record['title'].replace(u'[large print]','')
+	json_record['title'] = json_record['title'].replace(u'[gros caractères]','')
+	json_record['title'] = json_record['title'].replace(u'[(gros caractères)]','')
+	json_record['title'] = json_record['title'].replace(u'[text (large print)]','')
+	json_record['title'] = json_record['title'].replace(u'[texte (gros caractères)]','')
+	json_record['title'] = json_record['title'].replace(u'[music]','')
+	json_record['title'] = json_record['title'].replace(u'[musique]','')
 
 	if json_record['title'] == '':
 		json_record['title'] = 'ERROR BLANK TITLE'
