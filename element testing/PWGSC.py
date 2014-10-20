@@ -558,21 +558,21 @@ for input_file in input_files:
 		if input_file == 'monographs-monographies.xml':
 			for lang in MES_29_language:
 				if lang == 'eng':
-					json_record['resources'][0]['nature_genre_ml']['en'] = 'monograph'
+					json_record['resources'][0]['nature_genre_ml']['en'] = 'Monograph'
 				if lang == 'fra':
-					json_record['resources'][0]['nature_genre_ml']['fr'] = 'monographie'
+					json_record['resources'][0]['nature_genre_ml']['fr'] = 'Monographie'
 		if input_file == 'periodicals-periodiques.xml':
 			for lang in MES_29_language:
 				if lang == 'eng':
-					json_record['resources'][0]['nature_genre_ml']['en'] = 'periodical'
+					json_record['resources'][0]['nature_genre_ml']['en'] = 'Periodical'
 				if lang == 'fra':
-					json_record['resources'][0]['nature_genre_ml']['fr'] = 'periodique'
+					json_record['resources'][0]['nature_genre_ml']['fr'] = 'Périodique'
 		if input_file == 'series-series.xml':
 			for lang in MES_29_language:
 				if lang == 'eng':
-					json_record['resources'][0]['nature_genre_ml']['en'] = 'series'
+					json_record['resources'][0]['nature_genre_ml']['en'] = 'Series'
 				if lang == 'fra':
-					json_record['resources'][0]['nature_genre_ml']['fr'] = 'serie'
+					json_record['resources'][0]['nature_genre_ml']['fr'] = 'Série'
 
 		
 # CONFIRM with Alannah
