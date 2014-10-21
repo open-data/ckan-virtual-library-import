@@ -368,7 +368,7 @@ for input_file in input_files:
 					MES_14_gc_catalogue_number = m.group(1).strip() 
 					json_record['gc_catalogue_number'] = m.group(1).strip()
 				else:
-					m = re.search("{Numéro de catalogue}\s+(.*)", cn.text.strip())
+					m = re.search("{Num.ro de catalogue}\s+(.*)", cn.text.strip())
 					if m:
 						MES_14_gc_catalogue_number = m.group(1).strip()
 						json_record['gc_catalogue_number'] = m.group(1).strip()
@@ -381,7 +381,7 @@ for input_file in input_files:
 				if m:
 					MES_15_dept_catalogue_number = m.group(1).strip() 
 				else:
-					m = re.search("{ID ministérielle (en)}\s+(.*)", cn.text.strip())
+					m = re.search("{ID minist.rielle (en)}\s+(.*)", cn.text.strip())
 					if m:
 						MES_15_dept_catalogue_number = m.group(1).strip() 
 					else:
@@ -389,7 +389,7 @@ for input_file in input_files:
 						if m:
 							MES_15_dept_catalogue_number = m.group(1).strip() 
 						else:
-							m = re.search("{ID ministérielle (fr)}\s+(.*)", cn.text.strip())
+							m = re.search("{ID minist.rielle (fr)}\s+(.*)", cn.text.strip())
 							if m:
 								MES_15_dept_catalogue_number = m.group(1).strip() 
 
@@ -471,22 +471,32 @@ for input_file in input_files:
 		r = record.xpath("dc:description", namespaces=record.nsmap)
 		if(len(r)):
 			for cn in r:
+				#print cn.text.strip().encode('utf-8')
 				m = re.search('{Issue}\s+(.*)', cn.text.strip())
 				if m:
+					#print "series number {issue}"
 					bits.append(m.group(1).strip())
 					bits_en.append(m.group(1).strip())
-				m = re.search("{Numéro}\s+(.*)", cn.text.strip())
+				m = re.search('{Num.ro}\s+(.*)', cn.text.strip())
 				if m:
+					#print "series number {Num.ro}"
 					bits.append(m.group(1).strip())
 					bits_fr.append(m.group(1).strip())
-		if(len(bits)):
-			MES_24_series_number = bits
-		if(len(bits_en)):
-			json_record['series_number_ml']['en'] = ','.join(set(bits_en))
-		if(len(bits_fr)):
-			json_record['series_number_ml']['fr'] = ','.join(set(bits_fr))
-		if(len(json_record['series_number_ml']) < 1):
-			del json_record['series_number_ml']
+
+
+#['monographs-monographies.xml', 'periodicals-periodiques.xml', 'series-series.xml']
+
+		if input_file == 'series-series.xml':
+			json_record['series_number_ml'] = {}
+			if(len(bits)):
+				MES_24_series_number = bits
+			if(len(bits_en)):
+				json_record['series_number_ml']['en'] = ','.join(set(bits_en))
+			if(len(bits_fr)):
+				json_record['series_number_ml']['fr'] = ','.join(set(bits_fr))
+			if(len(json_record['series_number_ml']) < 1):
+				del json_record['series_number_ml']
+
 
 ## MES 25
 		# NA
@@ -495,32 +505,43 @@ for input_file in input_files:
 		# NA
 
 ## MES 27
-		bits = []
-		bits_en = []
-		bits_fr = []
-		json_record['resources'][0]['numeric_designation_ml'] = {}
-		#r = record.xpath("dc:identifier[@xml:lang='en']", namespaces=record.nsmap)
-		r = record.xpath("dc:description", namespaces=record.nsmap)
-		if(len(r)):
-			for cn in r:
-				m = re.search('{Issue}\s+(.*)', cn.text.strip())
-				if m:
-					bits.append(m.group(1).strip())
-					bits_en.append(m.group(1).strip())
-				m = re.search("{Numéro}\s+(.*)", cn.text.strip())
-				if m:
-					bits.append(m.group(1).strip())
-					bits_fr.append(m.group(1).strip())
+		if input_file == 'periodicals-periodiques.xml':
+			json_record['resources'][0]['numeric_designation_ml'] = {}
+			if(len(bits)):
+				MES_27_num_and_chrono_des = bits
+			if(len(bits_en)):
+				json_record['resources'][0]['numeric_designation_ml']['en'] = ','.join(set(bits_en))
+			if(len(bits_fr)):
+				json_record['resources'][0]['numeric_designation_ml']['fr'] = ','.join(set(bits_fr))
+			if(len(json_record['resources'][0]['numeric_designation_ml']) < 1):
+				del json_record['resources'][0]['numeric_designation_ml']
 
-		if(len(bits)):
-			MES_27_series_number = bits
-		if(len(bits_en)):
-			json_record['resources'][0]['numeric_designation_ml']['en'] = ','.join(set(bits_en))
-		if(len(bits_fr)):
-			json_record['resources'][0]['numeric_designation_ml']['fr'] = ','.join(set(bits_fr))
-		if(len(json_record['resources'][0]['numeric_designation_ml']) < 1):
-			del json_record['resources'][0]['numeric_designation_ml']
-
+#		bits = []
+#		bits_en = []
+#		bits_fr = []
+#		json_record['resources'][0]['numeric_designation_ml'] = {}
+#		#r = record.xpath("dc:identifier[@xml:lang='en']", namespaces=record.nsmap)
+#		r = record.xpath("dc:description", namespaces=record.nsmap)
+#		if(len(r)):
+#			for cn in r:
+#				m = re.search('{Issue}\s+(.*)', cn.text.strip())
+#				if m:
+#					bits.append(m.group(1).strip())
+#					bits_en.append(m.group(1).strip())
+#				m = re.search("{Num.ro}\s+(.*)", cn.text.strip())
+#				if m:
+#					bits.append(m.group(1).strip())
+#					bits_fr.append(m.group(1).strip())
+#
+#		if(len(bits)):
+#			MES_27_series_number = bits
+#		if(len(bits_en)):
+#			json_record['resources'][0]['numeric_designation_ml']['en'] = ','.join(set(bits_en))
+#		if(len(bits_fr)):
+#			json_record['resources'][0]['numeric_designation_ml']['fr'] = ','.join(set(bits_fr))
+#		if(len(json_record['resources'][0]['numeric_designation_ml']) < 1):
+#			del json_record['resources'][0]['numeric_designation_ml']
+#
 ## MES 28
 
 #		r = record.xpath("dc:format", namespaces=record.nsmap)
