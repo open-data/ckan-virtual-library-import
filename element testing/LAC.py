@@ -130,7 +130,7 @@ for record in root.iter('record'):
 	if MES_29_language[0] == '(M) ERROR MES element 29':
 		json_record['resources'][0]['languages'] = 'eng'
 	else:		
-		json_record['resources'][0]['languages'] = ','.join(set(MES_29_language))
+		json_record['resources'][0]['languages'] = ','.join(sorted(set(MES_29_language)))
 	
 	effective_language = 'en'
 	if MES_29_language[0] == 'fre' or MES_29_language[0] == 'fra':
@@ -300,8 +300,16 @@ for record in root.iter('record'):
 		#	print "INSTANCE:"
 			if int(year) < int(iso_time[:4]):
 		#		print "--a"
-				daterange = r[0].text.strip()
-				bits.append(r[0].text.strip())
+				working_date = r[0].text.strip()
+				date_bits = []
+				if len(working_date) >= 4:
+					date_bits.append(working_date[:4])
+				if len(working_date) >= 6:
+					date_bits.append(working_date[4:6])
+				if len(working_date) >= 8:
+					date_bits.append(working_date[6:8])
+				daterange = '-'.join(date_bits)
+				bits.append(daterange)
 		else:
 			pass
 			#print '['+MES_1_metadata_identifier +'] '+r[0].text.strip()
@@ -317,8 +325,16 @@ for record in root.iter('record'):
 		#	print "INSTANCE:"
 			if int(year) < int(iso_time[:4]):
 		#		print "--b"
-				daterange = r[0].text.strip()
-				bits.append(r[0].text.strip())
+				working_date = r[0].text.strip()
+				date_bits = []
+				if len(working_date) >= 4:
+					date_bits.append(working_date[:4])
+				if len(working_date) >= 6:
+					date_bits.append(working_date[4:6])
+				if len(working_date) >= 8:
+					date_bits.append(working_date[6:8])
+				daterange = '-'.join(date_bits)
+				bits.append(daterange)
 		else:
 			pass
 			#print '['+MES_1_metadata_identifier +'] '+r[0].text.strip()
@@ -334,8 +350,16 @@ for record in root.iter('record'):
 		#	print "INSTANCE:"
 			if int(year) < int(iso_time[:4]):
 		#		print "--c"
-				daterange = daterange+'-'+r[0].text.strip()
-				bits.append(r[0].text.strip())
+				working_date = r[0].text.strip()
+				date_bits = []
+				if len(working_date) >= 4:
+					date_bits.append(working_date[:4])
+				if len(working_date) >= 6:
+					date_bits.append(working_date[4:6])
+				if len(working_date) >= 8:
+					date_bits.append(working_date[6:8])
+				daterange = daterange+' to '+'-'.join(date_bits)
+				bits.append(daterange)
 		else:
 			pass
 			#print '['+MES_1_metadata_identifier +'] '+r[0].text.strip()
