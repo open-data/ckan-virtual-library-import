@@ -129,7 +129,7 @@ for input_file in input_files:
 					lang_test = 'fra'
 				#print "LANGO:["+MES_1_metadata_identifier+"]:"+namePart.text.strip()
 				MES_29_language.append(iso_conversion[lang_test])
-		json_record['resources'][0]['languages'] = ','.join(set(MES_29_language))
+		json_record['resources'][0]['languages'] = ','.join(sorted(set(MES_29_language)))
 
 ## MES 1
 		#r = record.xpath("dc:identifier[@xml:lang='en']", namespaces=record.nsmap)
