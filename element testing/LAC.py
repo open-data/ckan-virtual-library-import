@@ -22,7 +22,7 @@ with open('LACLINKS.csv', 'r') as csvfile:
 	for row in spamreader:
 		if row[0] == '':
 			continue
-		#print ', '.join(row)
+		#print ', '.join(set(row))
 		#print row
 		linkcheck_status[row[1]] = row[0]
 
@@ -130,7 +130,7 @@ for record in root.iter('record'):
 	if MES_29_language[0] == '(M) ERROR MES element 29':
 		json_record['resources'][0]['languages'] = 'eng'
 	else:		
-		json_record['resources'][0]['languages'] = ','.join(MES_29_language)
+		json_record['resources'][0]['languages'] = ','.join(set(MES_29_language))
 	
 	effective_language = 'en'
 	if MES_29_language[0] == 'fre' or MES_29_language[0] == 'fra':
@@ -153,7 +153,7 @@ for record in root.iter('record'):
 		for title in r:
 			MES_2_title.append(title.text.strip())
 
-	json_record['title'] = ' | '.join(MES_2_title)
+	json_record['title'] = ' | '.join(set(MES_2_title))
 	
 	#ISBD Values (IFLA):
 	json_record['title'] = json_record['title'].replace(u'[cartographic resource]','')
@@ -194,7 +194,7 @@ for record in root.iter('record'):
 	if json_record['title'] == '':
 		json_record['title'] = 'ERROR BLANK TITLE'
 
-# MES 3
+# MES 3 | unique the organiztion
 	json_record['source_organizations_ml'] = {}
 
 	r = record.xpath("name[@type='corporate']/namePart")
@@ -204,7 +204,7 @@ for record in root.iter('record'):
 			MES_3_GC_Department_or_Agency.append(namePart.text.strip())
 
 	if(MES_3_GC_Department_or_Agency[0] != '(M) ERROR MES element 3'):
-		json_record['source_organizations_ml'][effective_language] = ','.join(MES_3_GC_Department_or_Agency)
+		json_record['source_organizations_ml'][effective_language] = ','.join(set(MES_3_GC_Department_or_Agency))
 
 # MES 4
 	json_record['author'] = {}	
@@ -221,7 +221,7 @@ for record in root.iter('record'):
 			MES_4_author.append(namePart.text.strip())
 
 	if(MES_4_author[0] != "(M/a) CONFIRM MES element 4"):
-		json_record['author'] = ','.join(MES_4_author)
+		json_record['author'] = ','.join(set(MES_4_author))
 
 # MES 5
 	json_record['description_ml'] = {}	
@@ -278,13 +278,13 @@ for record in root.iter('record'):
 		MES_6_subject.extend(csh)
 
 	if(MES_6_subject[0] != '(M) ERROR MES element 6'):
-		json_record['subject_ml'][effective_language] = ','.join(MES_6_subject)
+		json_record['subject_ml'][effective_language] = ','.join(set(MES_6_subject))
 
 
 # MES 7
 	# MISSING IN THE LAC MAPPING
 
-# MES 8
+# MES 8 | yyyy-mm-dd to yyyy-mm-dd
 	bits = []
 	daterange = ''
 	match_range = ''
@@ -342,10 +342,10 @@ for record in root.iter('record'):
 
 
 	#if match_range != '':
-	#	print "1111-RANGE:"+match_range+' ('+(','.join(bits))+')'
+	#	print "1111-RANGE:"+match_range+' ('+(','.join(set(bits)))+')'
 
 	if(len(bits)):
-		MES_8_date_resource_published = ','.join(bits)
+		MES_8_date_resource_published = ','.join(set(bits))
 	elif match_range != '':
 		#print "SUPERRANGE:"+match_range
 		MES_8_date_resource_published = match_range
@@ -388,7 +388,7 @@ for record in root.iter('record'):
 			MES_12_ISBN.append(title.text.strip())
 
 	if(MES_12_ISBN[0] != '(M/a) CONFIRM MES element 12'):
-		json_record['isbn'] = ','.join(MES_12_ISBN)
+		json_record['isbn'] = ','.join(set(MES_12_ISBN))
 
 # MES 13
 	r = record.xpath("identifier[@type='issn']")
@@ -398,7 +398,7 @@ for record in root.iter('record'):
 			MES_13_ISSN.append(title.text.strip())
 
 	if(MES_13_ISSN[0] != '(M/a) CONFIRM MES element 13'):
-		json_record['issn'] = ','.join(MES_13_ISSN)
+		json_record['issn'] = ','.join(set(MES_13_ISSN))
 
 # MES 14
 	r = record.xpath("identifier[@type='govt']")
@@ -459,9 +459,9 @@ for record in root.iter('record'):
 				MES_24_series_number.append(title_no[1].strip())
 
 	if(MES_23_series_title[0] != "(M/a) CONFIRM MES element 23"):
-		json_record['series_title_ml'][effective_language] = ','.join(MES_23_series_title)
+		json_record['series_title_ml'][effective_language] = ','.join(set(MES_23_series_title))
 	if(MES_24_series_number[0] != "(M/a) CONFIRM MES element 24"):
-		json_record['series_number_ml'][effective_language] = ','.join(MES_24_series_number)
+		json_record['series_number_ml'][effective_language] = ','.join(set(MES_24_series_number))
 
 # MES 25
 	r = record.xpath("note[@type='Current Publication Frequency']")
@@ -478,7 +478,7 @@ for record in root.iter('record'):
 			MES_26_former_frequency.append(title.text.strip())
 
 	if MES_26_former_frequency[0] != "(M/a) CONFIRM MES element 26":
-		json_record['former_frequency'] = ','.join(MES_26_former_frequency)
+		json_record['former_frequency'] = ','.join(set(MES_26_former_frequency))
 
 # MES 27
 	json_record['resources'][0]['numeric_designation_ml'] = {}
@@ -495,7 +495,7 @@ for record in root.iter('record'):
 	
 
 	if( MES_27_num_and_chrono_des[0] != '(M/a) CONFIRM MES element 27' ):
-		json_record['resources'][0]['numeric_designation_ml'][effective_language] = ','.join(MES_27_num_and_chrono_des)
+		json_record['resources'][0]['numeric_designation_ml'][effective_language] = ','.join(set(MES_27_num_and_chrono_des))
 
 
 # MES 28
@@ -614,18 +614,18 @@ for record in root.iter('record'):
 
 	if MES_1_metadata_identifier 	        == '(M-C) ERROR MES element 1':# or  MES_1_metadata_identifier == '':
 		continue
-	if MES_2_title[0] 						== '(M) ERROR MES element 2':#   or  ''.join(MES_2_title) == '':
+	if MES_2_title[0] 						== '(M) ERROR MES element 2':#   or  ''.join(set(MES_2_title)) == '':
 		continue
-	if MES_3_GC_Department_or_Agency[0]		== '(M) ERROR MES element 3':#   or  ''.join(MES_3_GC_Department_or_Agency) == '':
+	if MES_3_GC_Department_or_Agency[0]		== '(M) ERROR MES element 3':#   or  ''.join(set(MES_3_GC_Department_or_Agency)) == '':
 		continue
 ##	#if MES_6_subject[0] 					== '(M) ERROR MES element 6'   or  MES_6_subject == '':
 	if MES_8_date_resource_published  		== '(M) ERROR MES element 8':#   or  MES_8_date_resource_published == '':
 		continue
-	if MES_29_language[0]                	== '(M) ERROR MES element 29':#  or ''.join(MES_29_language) == '':
+	if MES_29_language[0]                	== '(M) ERROR MES element 29':#  or ''.join(set(MES_29_language)) == '':
 		continue
-	if MES_32_format[0]						== '(M-C) ERROR MES element 32':#  or ''.join(MES_35_access_url) == '':
+	if MES_32_format[0]						== '(M-C) ERROR MES element 32':#  or ''.join(set(MES_35_access_url)) == '':
 		continue
-	if MES_35_access_url[0]              	== '(M) ERROR MES element 35':#  or ''.join(MES_35_access_url) == '':
+	if MES_35_access_url[0]              	== '(M) ERROR MES element 35':#  or ''.join(set(MES_35_access_url)) == '':
 		continue
 
 	if output_human:

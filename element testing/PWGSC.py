@@ -22,7 +22,7 @@ with open('PWGSCLINKS.csv', 'r') as csvfile:
 	for row in spamreader:
 		if row[0] == '':
 			continue
-		#print ', '.join(row)
+		#print ', '.join(set(row))
 		#print row
 		linkcheck_status[row[1]] = row[0]
 
@@ -129,7 +129,7 @@ for input_file in input_files:
 					lang_test = 'fra'
 				#print "LANGO:["+MES_1_metadata_identifier+"]:"+namePart.text.strip()
 				MES_29_language.append(iso_conversion[lang_test])
-		json_record['resources'][0]['languages'] = ','.join(MES_29_language)
+		json_record['resources'][0]['languages'] = ','.join(set(MES_29_language))
 
 ## MES 1
 		#r = record.xpath("dc:identifier[@xml:lang='en']", namespaces=record.nsmap)
@@ -163,9 +163,9 @@ for input_file in input_files:
 		if(len(bits)):
 			MES_2_title = bits
 		if(len(bits_en)):
-			json_record['title_ml']['en'] = ','.join(bits_en)
+			json_record['title_ml']['en'] = ','.join(set(bits_en))
 		if(len(bits_fr)):
-			json_record['title_ml']['fr'] = ','.join(bits_fr)
+			json_record['title_ml']['fr'] = ','.join(set(bits_fr))
 		#if(len(json_record['title_ml']) < 1):
 		#	del json_record['title_ml']
 
@@ -217,9 +217,9 @@ for input_file in input_files:
 		if(len(bits)):
 			MES_3_GC_Department_or_Agency = bits
 		if(len(bits_en)):
-			json_record['source_organizations_ml']['en'] = ','.join(bits_en)
+			json_record['source_organizations_ml']['en'] = ','.join(set(bits_en))
 		if(len(bits_fr)):
-			json_record['source_organizations_ml']['fr'] = ','.join(bits_fr)
+			json_record['source_organizations_ml']['fr'] = ','.join(set(bits_fr))
 		if(len(json_record['source_organizations_ml']) < 1):
 			del json_record['source_organizations_ml']
 
@@ -257,14 +257,14 @@ for input_file in input_files:
 						bits.append(title.text.strip())
 						bits_fr.append(title.text.strip())
 		if(len(bits)):
-			MES_5_description = "\n".join(bits)
+			MES_5_description = "\n".join(set(bits))
 			#json_record['description_ml'] = "\n".join(bits)
 		if(len(bits_en)):
-			json_record['description_ml']['en'] = ' '.join(bits_en)
+			json_record['description_ml']['en'] = ' '.join(set(bits_en))
 			if page != '':
 				json_record['description_ml']['en'] = json_record['description_ml']['en'] + ' ' + page
 		if(len(bits_fr)):
-			json_record['description_ml']['fr'] = ' '.join(bits_fr)
+			json_record['description_ml']['fr'] = ' '.join(set(bits_fr))
 			if page != '':
 				json_record['description_ml']['fr'] = json_record['description_ml']['fr'] + ' ' + page
 		#if(len(json_record['description_ml']) < 1):
@@ -291,9 +291,9 @@ for input_file in input_files:
 		if(len(bits)):
 			MES_6_subject = bits
 		if(len(bits_en)):
-			json_record['subject_ml']['en'] = ','.join(bits_en)
+			json_record['subject_ml']['en'] = ','.join(set(bits_en))
 		if(len(bits_fr)):
-			json_record['subject_ml']['fr'] = ','.join(bits_en)
+			json_record['subject_ml']['fr'] = ','.join(set(bits_en))
 
 
 		if(len(json_record['subject_ml']) < 1):
@@ -341,7 +341,7 @@ for input_file in input_files:
 					MES_12_ISBN.append(isbn_bits[1].strip())
 
 		if(MES_12_ISBN[0] != '(M/a) CONFIRM MES element 12'):
-			json_record['isbn'] = ','.join(MES_12_ISBN)
+			json_record['isbn'] = ','.join(set(MES_12_ISBN))
 
 
 ## MES 13
@@ -356,7 +356,7 @@ for input_file in input_files:
 					MES_13_ISSN.append(issn_bits[1].strip())
 
 		if(MES_13_ISSN[0] != '(M/a) CONFIRM MES element 13'):
-			json_record['issn'] = ','.join(MES_13_ISSN)
+			json_record['issn'] = ','.join(set(MES_13_ISSN))
 
 ## MES 14
 		#r = record.xpath("dc:identifier[@xml:lang='en']", namespaces=record.nsmap)
@@ -455,9 +455,9 @@ for input_file in input_files:
 		if(len(bits)):
 			MES_23_series_title = bits
 		if(len(bits_en)):
-			json_record['series_title_ml']['en'] = ','.join(bits_en)
+			json_record['series_title_ml']['en'] = ','.join(set(bits_en))
 		if(len(bits_fr)):
-			json_record['series_title_ml']['fr'] = ','.join(bits_fr)
+			json_record['series_title_ml']['fr'] = ','.join(set(bits_fr))
 		if(len(json_record['series_title_ml']) < 1):
 			del json_record['series_title_ml']
 
@@ -482,9 +482,9 @@ for input_file in input_files:
 		if(len(bits)):
 			MES_24_series_number = bits
 		if(len(bits_en)):
-			json_record['series_number_ml']['en'] = ','.join(bits_en)
+			json_record['series_number_ml']['en'] = ','.join(set(bits_en))
 		if(len(bits_fr)):
-			json_record['series_number_ml']['fr'] = ','.join(bits_fr)
+			json_record['series_number_ml']['fr'] = ','.join(set(bits_fr))
 		if(len(json_record['series_number_ml']) < 1):
 			del json_record['series_number_ml']
 
@@ -515,9 +515,9 @@ for input_file in input_files:
 		if(len(bits)):
 			MES_27_series_number = bits
 		if(len(bits_en)):
-			json_record['resources'][0]['numeric_designation_ml']['en'] = ','.join(bits_en)
+			json_record['resources'][0]['numeric_designation_ml']['en'] = ','.join(set(bits_en))
 		if(len(bits_fr)):
-			json_record['resources'][0]['numeric_designation_ml']['fr'] = ','.join(bits_fr)
+			json_record['resources'][0]['numeric_designation_ml']['fr'] = ','.join(set(bits_fr))
 		if(len(json_record['resources'][0]['numeric_designation_ml']) < 1):
 			del json_record['resources'][0]['numeric_designation_ml']
 
@@ -548,7 +548,7 @@ for input_file in input_files:
 						bits.append(m.group(1).strip())
 		if(len(bits)):
 			MES_30_language_other = bits
-			json_record['other_language_url'] = ','.join(MES_30_language_other)			
+			json_record['other_language_url'] = ','.join(set(MES_30_language_other))
 			#json_record['other_language_url'] = langist(bits)
 
 ## MES 31
@@ -596,9 +596,9 @@ for input_file in input_files:
 #				bits_fr.append(cn.text.strip())
 #
 #		if(len(bits_en)):
-#			json_record['resources'][0]['nature_genre_ml']['en'] = ','.join(bits_en)
+#			json_record['resources'][0]['nature_genre_ml']['en'] = ','.join(set(bits_en))
 #		if(len(bits_fr)):
-#			json_record['resources'][0]['nature_genre_ml']['fr'] = ','.join(bits_fr)
+#			json_record['resources'][0]['nature_genre_ml']['fr'] = ','.join(set(bits_fr))
 #
 # ####################
 
@@ -680,7 +680,7 @@ for input_file in input_files:
 
 		#continue
 
-		if MES_32_format[0]						== '(M-C) ERROR MES element 32':#  or ''.join(MES_35_access_url) == '':
+		if MES_32_format[0]						== '(M-C) ERROR MES element 32':#  or ''.join(set(MES_35_access_url)) == '':
 			continue
 
 	#
@@ -776,7 +776,7 @@ for key, value in global_json.iteritems() :
 		for url in urls:
 			if url in global_json:
 				combine_ole.append(global_json[url]['name'])
-		global_json[key]['other_language_url'] = ','.join(combine_ole)
+		global_json[key]['other_language_url'] = ','.join(set(combine_ole))
 
 for key, value in global_json.iteritems() :
 	#global_json[] json.dumps(json_record)
